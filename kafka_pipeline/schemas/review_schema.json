@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TikiReviewEvent",
+  "type": "object",
+  "required": [
+    "review_id",
+    "product_id",
+    "customer_hash",
+    "rating",
+    "created_at"
+  ],
+  "properties": {
+    "review_id": {
+      "type": "integer"
+    },
+    "product_id": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "customer_hash": {
+      "type": "string"
+    },
+    "rating": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 5
+    },
+    "title": {
+      "type": "string"
+    },
+    "content": {
+      "type": "string"
+    },
+    "thank_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "is_buyer": {
+      "type": "boolean"
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "crawled_at": {
+      "type": "string"
+    }
+  }
+}

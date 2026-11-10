@@ -1,0 +1,92 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TikiProductEvent",
+  "type": "object",
+  "required": [
+    "product_id",
+    "name",
+    "price",
+    "original_price",
+    "crawled_at"
+  ],
+  "properties": {
+    "product_id": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "url_key": {
+      "type": "string"
+    },
+    "price": {
+      "type": "number",
+      "minimum": 0
+    },
+    "original_price": {
+      "type": "number",
+      "minimum": 0
+    },
+    "discount": {
+      "type": "number"
+    },
+    "discount_rate": {
+      "type": "number"
+    },
+    "rating_average": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 5.0
+    },
+    "review_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "quantity_sold": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "brand_id": {
+      "type": "string"
+    },
+    "brand_name": {
+      "type": "string"
+    },
+    "seller_id": {
+      "type": "string"
+    },
+    "seller_name": {
+      "type": "string"
+    },
+    "is_official_seller": {
+      "type": "boolean"
+    },
+    "subcategory_id": {
+      "type": "string"
+    },
+    "subcategory_name": {
+      "type": "string"
+    },
+    "origin": {
+      "type": "string"
+    },
+    "warranty_type": {
+      "type": "string"
+    },
+    "power_wattage": {
+      "type": "string"
+    },
+    "capacity": {
+      "type": "string"
+    },
+    "is_active": {
+      "type": "boolean"
+    },
+    "crawled_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

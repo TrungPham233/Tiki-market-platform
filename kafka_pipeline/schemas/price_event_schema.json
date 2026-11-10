@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TikiPriceChangeEvent",
+  "type": "object",
+  "required": [
+    "event_id",
+    "product_id",
+    "old_price",
+    "new_price",
+    "price_change_pct",
+    "is_flash_sale",
+    "event_timestamp"
+  ],
+  "properties": {
+    "event_id": {
+      "type": "string"
+    },
+    "product_id": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "product_name": {
+      "type": "string"
+    },
+    "brand_name": {
+      "type": "string"
+    },
+    "seller_name": {
+      "type": "string"
+    },
+    "old_price": {
+      "type": "number",
+      "minimum": 0
+    },
+    "new_price": {
+      "type": "number",
+      "minimum": 0
+    },
+    "original_price": {
+      "type": "number",
+      "minimum": 0
+    },
+    "price_change_pct": {
+      "type": "number"
+    },
+    "is_flash_sale": {
+      "type": "boolean"
+    },
+    "event_timestamp": {
+      "type": "string"
+    }
+  }
+}

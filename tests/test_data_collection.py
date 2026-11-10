@@ -99,3 +99,4 @@ def test_generate_price_event():
     assert event["is_flash_sale"] is True
     assert event["new_price"] < event["old_price"]
     assert event["price_change_pct"] <= -30.0
+

@@ -101,7 +101,7 @@ docker compose up -d
 │   ├── crawl_product_detail.py
 │   ├── crawl_reviews.py
 │   └── simulate_price_events.py
-├── kafka/
+├── kafka_pipeline/
 │   ├── producers/
 │   ├── consumers/
 │   └── schemas/
