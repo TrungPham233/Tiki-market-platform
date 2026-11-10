@@ -38,3 +38,4 @@ The **Data Quality Gate** operates as a circuit-breaker (Fail-Fast barrier) betw
 - **Tiki Display Discrepancy:** When Tiki reports `discount_rate = 0%` but actual calculation is $15\%$, the record is flagged with `is_discount_discrepancy = True` for audit without blocking business dashboards.
 - **Circuit Breaker:** If critical checks fail, the DAG raises `DataQualityError` and stops before triggering Gold dimension/fact builds.
 - **Audit Artifact:** Results are persisted to `data/lakehouse/silver/data_quality_report.json` on every run for governance and compliance.
+

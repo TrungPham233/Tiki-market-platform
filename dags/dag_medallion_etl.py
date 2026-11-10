@@ -116,3 +116,4 @@ with DAG(
     [silver_products, silver_reviews] >> quality_gate
     quality_gate >> [gold_dimensions, gold_facts]
     [gold_dimensions, gold_facts] >> gold_aggregations >> price_alerts
+

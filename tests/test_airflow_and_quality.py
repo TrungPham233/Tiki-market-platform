@@ -96,3 +96,4 @@ def test_silver_quality_gate_fails_corrupted_data(tmp_path):
 
     with pytest.raises(DataQualityError):
         run_silver_quality_gate(p_file, r_file)
+

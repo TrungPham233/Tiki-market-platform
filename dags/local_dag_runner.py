@@ -92,3 +92,4 @@ if __name__ == "__main__":
     parser.parse_args()
     success = run_simulated_dag()
     sys.exit(0 if success else 1)
+

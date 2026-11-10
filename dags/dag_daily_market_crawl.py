@@ -71,3 +71,4 @@ with DAG(
     # Dependency graph
     crawl_ids >> crawl_details >> crawl_reviews >> simulate_events
     simulate_events >> [publish_products, publish_reviews]
+
