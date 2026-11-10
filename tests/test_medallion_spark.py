@@ -68,3 +68,4 @@ def test_evaluate_price_alert_normal_no_trigger():
     }
     alert = evaluate_price_event(event_normal)
     assert alert == {}
+

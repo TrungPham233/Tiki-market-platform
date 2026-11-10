@@ -29,3 +29,4 @@ else:
     BRONZE_PATH = str(BRONZE_DIR)
     SILVER_PATH = str(SILVER_DIR)
     GOLD_PATH = str(GOLD_DIR)
+

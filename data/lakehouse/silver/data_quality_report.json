@@ -1,0 +1,82 @@
+{
+  "evaluated_at": "2026-11-10T12:47:00.654463+00:00",
+  "total_checks": 12,
+  "passed": 12,
+  "warnings": 0,
+  "failures": 0,
+  "gate_status": "PASSED",
+  "results": [
+    {
+      "check": "TABLE_NOT_EMPTY",
+      "table": "silver_products",
+      "status": "PASSED",
+      "details": "Row count: 15 >= 1"
+    },
+    {
+      "check": "NOT_NULL_product_id",
+      "table": "silver_products",
+      "status": "PASSED",
+      "details": "Zero nulls in 'product_id'"
+    },
+    {
+      "check": "NOT_NULL_name",
+      "table": "silver_products",
+      "status": "PASSED",
+      "details": "Zero nulls in 'name'"
+    },
+    {
+      "check": "NOT_NULL_price",
+      "table": "silver_products",
+      "status": "PASSED",
+      "details": "Zero nulls in 'price'"
+    },
+    {
+      "check": "UNIQUE_product_id",
+      "table": "silver_products",
+      "status": "PASSED",
+      "details": "All values in 'product_id' are unique"
+    },
+    {
+      "check": "RANGE_rating_average",
+      "table": "silver_products",
+      "status": "PASSED",
+      "details": "All values within [0.0, 5.0]"
+    },
+    {
+      "check": "ANOMALY_is_price_anomaly",
+      "table": "silver_products",
+      "status": "PASSED",
+      "details": "Anomaly rate: 0.00% <= allowed 5.0% (0/15)"
+    },
+    {
+      "check": "TABLE_NOT_EMPTY",
+      "table": "silver_reviews",
+      "status": "PASSED",
+      "details": "Row count: 165 >= 1"
+    },
+    {
+      "check": "NOT_NULL_review_id",
+      "table": "silver_reviews",
+      "status": "PASSED",
+      "details": "Zero nulls in 'review_id'"
+    },
+    {
+      "check": "NOT_NULL_product_id",
+      "table": "silver_reviews",
+      "status": "PASSED",
+      "details": "Zero nulls in 'product_id'"
+    },
+    {
+      "check": "UNIQUE_review_id",
+      "table": "silver_reviews",
+      "status": "PASSED",
+      "details": "All values in 'review_id' are unique"
+    },
+    {
+      "check": "RANGE_rating",
+      "table": "silver_reviews",
+      "status": "PASSED",
+      "details": "All values within [1, 5]"
+    }
+  ]
+}
