@@ -175,20 +175,6 @@ tests/test_serving_layer.py::test_sqlite_dwh_sync_and_views PASSED       [100%]
 
 ---
 
-## 💼 How to Showcase this Project on Your CV / Resume
-
-Copy and adapt this section directly into your resume:
-
-### **Real-time E-Commerce Market & Price Monitoring Platform**
-*Technologies: Python, Apache Kafka, Apache Spark (PySpark), Delta Lake, Apache Airflow, PostgreSQL, Docker, Power BI*
-- Architected an end-to-end **Medallion Lakehouse platform (Bronze/Silver/Gold)** ingesting thousands of e-commerce products and customer reviews from Tiki with **Delta Lake** ACID storage and **SCD Type 2** dimension tracking.
-- Engineered a streaming pipeline utilizing **Apache Kafka (KRaft mode)** and **Spark Structured Streaming** to detect steep price drops ($\ge 30\%$) and flash sales in near-real-time.
-- Designed an automated **Data Quality Circuit Breaker** with 12 validation assertions integrated into **Apache Airflow DAGs**, halting pipelines on primary key collisions or rating corruptions to safeguard BI reports.
-- Implemented Vietnamese Natural Language Processing (NLP) with **`underthesea`**, uncovering that over 50% of 1-star reviews stemmed from after-sales return logistics rather than hardware failures.
-- Modeled a Star Schema in **PostgreSQL Data Warehouse** and designed a 7-page **Power BI Dashboard** leveraging advanced DAX (`TREATAS`, `CR5 Index`) delivering strategic category management insights.
-
----
-
 ## 👤 Author
 - **GitHub:** [@TrungPham233](https://github.com/TrungPham233)
 - **Email:** 23521685@gm.uit.edu.vn

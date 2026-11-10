@@ -65,3 +65,4 @@ Qua việc thu thập, làm sạch và phân tích toàn diện hàng nghìn s�
   * Khi phân tích các đánh giá tiêu cực (1 - 2 sao) bằng thư viện `underthesea`, tỷ lệ phàn nàn về **Quy trình hậu mãi (Đổi trả, Hoàn tiền, Thái độ CSKH, Giao hàng chậm)** chiếm tới **50%** tổng số khiếu nại — tương đương hoặc cao hơn tỷ lệ phàn nàn về **Lỗi hỏng hóc kỹ thuật của máy móc**.
 * **Đề xuất hành động:**
   * **Tối ưu SLA Đổi trả:** Thay vì đổ lỗi cho nhà sản xuất sản phẩm, ban điều hành Tiki cần rút ngắn thời gian xử lý yêu cầu đổi trả hàng từ 7 ngày xuống còn 48 giờ. Trải nghiệm xử lý khiếu nại mượt mà sẽ chuyển đổi khách hàng không hài lòng thành khách hàng trung thành.
+
