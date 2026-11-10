@@ -1,0 +1,44 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Environment variables & secrets
+.env
+*.pem
+*.key
+
+# Data & local storage
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+minio_data/
+postgres_data/
+
+# Spark & checkpoint files
+spark-warehouse/
+checkpoints/
+metastore_db/
+derby.log
+*.parquet
+*.delta
+
+# Logs & Airflow
+logs/
+*.log
+airflow.cfg
+airflow.db
+
+# IDE & OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
