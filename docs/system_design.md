@@ -61,3 +61,4 @@
 - **MinIO Console:** `http://localhost:9001` (admin/admin12345)
 - **MinIO S3 API:** `http://localhost:9000`
 - **PostgreSQL DWH:** `localhost:5432` (db: `tiki_dwh`, user: `postgres`, pw: `postgres`)
+

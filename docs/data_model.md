@@ -99,3 +99,4 @@ erDiagram
 ### 🥇 Gold Layer (Star Schema & Business Aggregations)
 - Storage: Delta Lake + Synced to PostgreSQL `dwh` & `analytics` schemas
 - Optimized for BI reporting and sub-second Power BI querying.
+
