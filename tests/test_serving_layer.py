@@ -31,3 +31,4 @@ def test_sqlite_dwh_sync_and_views(tmp_path):
         assert row is not None
         assert row[0] == p_count  # total_skus matches product count
         assert row[2] > 0.0      # valid avg rating
+

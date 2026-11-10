@@ -120,3 +120,4 @@ SELECT
     triggered_at
 FROM dwh.alerts
 ORDER BY triggered_at DESC;
+

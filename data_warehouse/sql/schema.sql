@@ -106,3 +106,4 @@ CREATE INDEX IF NOT EXISTS idx_fact_prod_brand ON dwh.fact_product_snapshot(bran
 CREATE INDEX IF NOT EXISTS idx_fact_prod_seller ON dwh.fact_product_snapshot(seller_id);
 CREATE INDEX IF NOT EXISTS idx_fact_rev_prod ON dwh.fact_reviews(product_sk);
 CREATE INDEX IF NOT EXISTS idx_fact_rev_sentiment ON dwh.fact_reviews(sentiment_label);
+
