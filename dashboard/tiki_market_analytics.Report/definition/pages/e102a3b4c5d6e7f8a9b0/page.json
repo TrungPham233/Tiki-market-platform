@@ -1,0 +1,8 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json",
+  "name": "e102a3b4c5d6e7f8a9b0",
+  "displayName": "Pricing & Discount Saturation",
+  "displayOption": "FitToPage",
+  "height": 1080,
+  "width": 1920
+}

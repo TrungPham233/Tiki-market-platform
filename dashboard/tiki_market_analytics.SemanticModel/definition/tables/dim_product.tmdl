@@ -1,0 +1,146 @@
+table dim_product
+	lineageTag: 753e2b68-5ab5-44cf-92a4-3175c431e8c0
+
+	column product_id
+		dataType: int64
+		formatString: 0
+		lineageTag: 9aa8daef-3462-419c-bec2-27ae4dfd58e9
+		summarizeBy: none
+		sourceColumn: product_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column name
+		dataType: string
+		lineageTag: 1c589705-93ec-4fb4-a488-1f2f7ed11075
+		summarizeBy: none
+		sourceColumn: name
+
+		annotation SummarizationSetBy = Automatic
+
+	column brand_id
+		dataType: int64
+		formatString: 0
+		lineageTag: 52535b28-bafa-4a1c-8124-0a73b2743d46
+		summarizeBy: sum
+		sourceColumn: brand_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column seller_id
+		dataType: int64
+		formatString: 0
+		lineageTag: 2ccc4789-4cd2-45d0-a02a-12c212005e09
+		summarizeBy: sum
+		sourceColumn: seller_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column subcategory_id
+		dataType: int64
+		formatString: 0
+		lineageTag: eb9118d8-bf01-4fcb-a5b7-56705439e371
+		summarizeBy: none
+		sourceColumn: subcategory_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column original_price
+		dataType: int64
+		formatString: 0
+		lineageTag: 26f43239-4c3e-41a4-86e4-765290bb0394
+		summarizeBy: sum
+		sourceColumn: original_price
+
+		annotation SummarizationSetBy = Automatic
+
+	column origin
+		dataType: string
+		lineageTag: 3bc84daf-a09e-4384-b5c7-7208c8baa52c
+		summarizeBy: none
+		sourceColumn: origin
+
+		annotation SummarizationSetBy = Automatic
+
+	column warranty_type
+		dataType: string
+		lineageTag: 86f59393-68f5-4d10-98fa-47f66871894d
+		summarizeBy: none
+		sourceColumn: warranty_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column power_wattage
+		dataType: string
+		lineageTag: a4e2c92d-4b06-4e8c-8627-ca16f6b494e6
+		summarizeBy: none
+		sourceColumn: power_wattage
+
+		annotation SummarizationSetBy = Automatic
+
+	column capacity
+		dataType: string
+		lineageTag: 4cd1b385-0fd5-4ec3-b674-5395f560e1c0
+		summarizeBy: none
+		sourceColumn: capacity
+
+		annotation SummarizationSetBy = Automatic
+
+	column product_sk
+		dataType: string
+		lineageTag: 4c8314ba-aa41-48cb-a533-2aaecd7500d6
+		summarizeBy: none
+		sourceColumn: product_sk
+
+		annotation SummarizationSetBy = Automatic
+
+	column valid_from
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 94c7271a-6c23-48eb-97a1-6cf7a748fe36
+		summarizeBy: none
+		sourceColumn: valid_from
+
+		variation Variation
+			isDefault
+			relationship: f86cd2fd-5c06-4866-b3f4-29e594c28095
+			defaultHierarchy: LocalDateTable_d8734ea3-55e0-496c-8ed5-b85992fa09f8.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column valid_to
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 3f41f656-c142-4ab5-a9b9-e8281751a074
+		summarizeBy: none
+		sourceColumn: valid_to
+
+		variation Variation
+			isDefault
+			relationship: abea4c30-7b78-4132-acc9-bdd14c0aa153
+			defaultHierarchy: LocalDateTable_9ba340d7-d7d0-4d5a-882d-6988c0748b12.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_current
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: f9c68b9f-7973-45db-ae52-61aff13fd0ca
+		summarizeBy: none
+		sourceColumn: is_current
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_product = m
+		mode: import
+		source =
+				let
+				    Source = Excel.Workbook(File.Contents("E:\baitap\Project1\tiki-market-platform\dashboard\data\tiki_market_dwh_gold.xlsx"), null, true),
+				    dim_product_Sheet = Source{[Item="dim_product",Kind="Sheet"]}[Data],
+				    #"Promoted Headers" = Table.PromoteHeaders(dim_product_Sheet, [PromoteAllScalars=true]),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"product_id", Int64.Type}, {"name", type text}, {"brand_id", Int64.Type}, {"seller_id", Int64.Type}, {"subcategory_id", Int64.Type}, {"original_price", Int64.Type}, {"origin", type text}, {"warranty_type", type text}, {"power_wattage", type text}, {"capacity", type any}, {"product_sk", type text}, {"valid_from", type datetime}, {"valid_to", type datetimezone}, {"is_current", type logical}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+

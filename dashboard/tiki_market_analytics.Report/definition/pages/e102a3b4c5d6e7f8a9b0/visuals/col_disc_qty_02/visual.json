@@ -1,0 +1,76 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.1.0/schema.json",
+  "name": "col_disc_qty_02",
+  "position": {
+    "x": 40,
+    "y": 190,
+    "z": 2000,
+    "height": 420,
+    "width": 890,
+    "tabOrder": 2000
+  },
+  "visual": {
+    "visualType": "clusteredColumnChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "agg_discount_saturation"
+                    }
+                  },
+                  "Property": "discount_bracket"
+                }
+              },
+              "queryRef": "agg_discount_saturation.discount_bracket"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "agg_discount_saturation"
+                    }
+                  },
+                  "Property": "Avg Units Sold"
+                }
+              },
+              "queryRef": "agg_discount_saturation.Avg Units Sold"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Sản lượng bán TB theo Khung giảm giá (Units Sold by Discount Bracket)'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

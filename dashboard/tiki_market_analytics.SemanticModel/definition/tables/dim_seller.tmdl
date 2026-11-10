@@ -1,0 +1,42 @@
+table dim_seller
+	lineageTag: f94889d0-e331-407b-9c71-f55cacb8eae0
+
+	column seller_id
+		dataType: int64
+		formatString: 0
+		lineageTag: 300fe38b-390c-4445-a100-42ab2828d6c5
+		summarizeBy: none
+		sourceColumn: seller_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column seller_name
+		dataType: string
+		lineageTag: a208e193-e7d0-4379-bd19-ce779d1edd87
+		summarizeBy: none
+		sourceColumn: seller_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_official_seller
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 51cc4baf-223f-4098-af53-6a301ad05d75
+		summarizeBy: none
+		sourceColumn: is_official_seller
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_seller = m
+		mode: import
+		source =
+				let
+				    Source = Excel.Workbook(File.Contents("E:\baitap\Project1\tiki-market-platform\dashboard\data\tiki_market_dwh_gold.xlsx"), null, true),
+				    dim_seller_Sheet = Source{[Item="dim_seller",Kind="Sheet"]}[Data],
+				    #"Promoted Headers" = Table.PromoteHeaders(dim_seller_Sheet, [PromoteAllScalars=true]),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"seller_id", Int64.Type}, {"seller_name", type text}, {"is_official_seller", type logical}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+

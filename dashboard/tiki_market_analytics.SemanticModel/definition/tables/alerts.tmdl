@@ -1,0 +1,116 @@
+table alerts
+	lineageTag: 354889d7-0c46-49c3-894d-8bd6da9cf6c3
+
+	column alert_id
+		dataType: string
+		lineageTag: 61643105-f852-4b06-97af-3a7f200ac8b9
+		summarizeBy: none
+		sourceColumn: alert_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column alert_type
+		dataType: string
+		lineageTag: de1b34cf-3e55-444e-9645-656754e7516e
+		summarizeBy: none
+		sourceColumn: alert_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column product_id
+		dataType: int64
+		formatString: 0
+		lineageTag: a59e4f36-8d6d-46a8-8381-db75053f0549
+		summarizeBy: none
+		sourceColumn: product_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column product_name
+		dataType: string
+		lineageTag: 75a73272-aa93-477e-8815-eba20d7f37ed
+		summarizeBy: none
+		sourceColumn: product_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column brand_name
+		dataType: string
+		lineageTag: 59e03b47-9507-45c2-af25-9fe28412d074
+		summarizeBy: none
+		sourceColumn: brand_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column seller_name
+		dataType: string
+		lineageTag: 507adf38-e352-44b3-9a5b-8ea11ead4ba6
+		summarizeBy: none
+		sourceColumn: seller_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column old_price
+		dataType: int64
+		formatString: 0
+		lineageTag: 1b15de54-db03-47de-9416-81ddacd2a78a
+		summarizeBy: sum
+		sourceColumn: old_price
+
+		annotation SummarizationSetBy = Automatic
+
+	column new_price
+		dataType: int64
+		formatString: 0
+		lineageTag: 2bd9cb38-5265-412c-8c2f-72c03b328355
+		summarizeBy: sum
+		sourceColumn: new_price
+
+		annotation SummarizationSetBy = Automatic
+
+	column price_drop_pct
+		dataType: double
+		lineageTag: ef108209-cc7a-47b0-bb6d-5faf1fa98d2f
+		summarizeBy: sum
+		sourceColumn: price_drop_pct
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column savings_amount
+		dataType: int64
+		formatString: 0
+		lineageTag: cd000c48-7d49-4b6c-93f3-a07dccb6284a
+		summarizeBy: sum
+		sourceColumn: savings_amount
+
+		annotation SummarizationSetBy = Automatic
+
+	column triggered_at
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 868a9822-deac-43f1-8be2-2931ccd6e55c
+		summarizeBy: none
+		sourceColumn: triggered_at
+
+		variation Variation
+			isDefault
+			relationship: 1ba175a7-1369-4d5c-b17f-1181d4869340
+			defaultHierarchy: LocalDateTable_6d4fb0ab-8bee-4ffc-b7a7-8f9e402fc14d.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	partition alerts = m
+		mode: import
+		source =
+				let
+				    Source = Excel.Workbook(File.Contents("E:\baitap\Project1\tiki-market-platform\dashboard\data\tiki_market_dwh_gold.xlsx"), null, true),
+				    alerts_Sheet = Source{[Item="alerts",Kind="Sheet"]}[Data],
+				    #"Promoted Headers" = Table.PromoteHeaders(alerts_Sheet, [PromoteAllScalars=true]),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"alert_id", type text}, {"alert_type", type text}, {"product_id", Int64.Type}, {"product_name", type text}, {"brand_name", type text}, {"seller_name", type text}, {"old_price", Int64.Type}, {"new_price", Int64.Type}, {"price_drop_pct", type number}, {"savings_amount", Int64.Type}, {"triggered_at", type datetime}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+

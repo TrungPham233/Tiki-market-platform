@@ -1,0 +1,34 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: en-US
+	valueFilterBehavior: independent
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 1
+
+annotation PBI_QueryOrder = ["agg_brand_market_share","agg_voc_complaint_causes","agg_discount_saturation","alerts","dim_brand","dim_product","dim_date","dim_seller","dim_subcategory","fact_product_snapshot","fact_reviews"]
+
+annotation PBI_ProTooling = ["DevMode"]
+
+ref table agg_brand_market_share
+ref table agg_voc_complaint_causes
+ref table agg_discount_saturation
+ref table alerts
+ref table DateTableTemplate_3007d114-f176-4e03-a391-0849ab692f72
+ref table LocalDateTable_6d4fb0ab-8bee-4ffc-b7a7-8f9e402fc14d
+ref table dim_brand
+ref table dim_product
+ref table LocalDateTable_d8734ea3-55e0-496c-8ed5-b85992fa09f8
+ref table LocalDateTable_9ba340d7-d7d0-4d5a-882d-6988c0748b12
+ref table dim_date
+ref table LocalDateTable_ea42d29c-00d0-4b1e-801d-8eb4174a121f
+ref table dim_seller
+ref table dim_subcategory
+ref table fact_product_snapshot
+ref table fact_reviews
+
+ref cultureInfo en-US
+

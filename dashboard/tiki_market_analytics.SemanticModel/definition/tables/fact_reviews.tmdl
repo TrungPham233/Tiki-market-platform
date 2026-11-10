@@ -1,0 +1,180 @@
+table fact_reviews
+	lineageTag: d7cc88e5-2901-4ea3-ad9f-dae2e7d8df3f
+
+	measure 'Total Reviews' = COUNTROWS(fact_reviews)
+		formatString: #,##0
+		lineageTag: 82b9fc23-43b2-4896-b062-9854d5b30001
+
+	measure 'Positive Review Ratio %' = ```
+			VAR PositiveCount = 
+			    CALCULATE(COUNTROWS(fact_reviews), fact_reviews[sentiment_label] = "positive")
+			VAR TotalReviews = 
+			    COUNTROWS(fact_reviews)
+			RETURN
+			    DIVIDE(PositiveCount, TotalReviews, 0)
+			```
+		formatString: 0.0%
+		lineageTag: 82b9fc23-43b2-4896-b062-9854d5b30002
+
+	measure 'Negative Review Ratio %' = ```
+			VAR NegCount = 
+			    CALCULATE(COUNTROWS(fact_reviews), fact_reviews[sentiment_label] = "negative")
+			VAR TotalReviews = 
+			    COUNTROWS(fact_reviews)
+			RETURN
+			    DIVIDE(NegCount, TotalReviews, 0)
+			```
+		formatString: 0.0%
+		lineageTag: 82b9fc23-43b2-4896-b062-9854d5b30003
+
+	measure 'AfterSales Complaint %' = ```
+			VAR AfterSalesCount = 
+			    CALCULATE(
+			        COUNTROWS(fact_reviews),
+			        fact_reviews[is_after_sales_complaint] = TRUE(),
+			        fact_reviews[sentiment_label] = "negative"
+			    )
+			VAR TotalNegative = 
+			    CALCULATE(COUNTROWS(fact_reviews), fact_reviews[sentiment_label] = "negative")
+			RETURN
+			    DIVIDE(AfterSalesCount, TotalNegative, 0)
+			```
+		formatString: 0.0%
+		lineageTag: 82b9fc23-43b2-4896-b062-9854d5b30004
+
+	measure 'Hardware Defect %' = ```
+			VAR DefectCount = 
+			    CALCULATE(
+			        COUNTROWS(fact_reviews),
+			        fact_reviews[is_defect_complaint] = TRUE(),
+			        fact_reviews[sentiment_label] = "negative"
+			    )
+			VAR TotalNegative = 
+			    CALCULATE(COUNTROWS(fact_reviews), fact_reviews[sentiment_label] = "negative")
+			RETURN
+			    DIVIDE(DefectCount, TotalNegative, 0)
+			```
+		formatString: 0.0%
+		lineageTag: 82b9fc23-43b2-4896-b062-9854d5b30005
+
+	measure 'Reviews By Seller' = ```
+			CALCULATE(
+			    COUNTROWS(fact_reviews),
+			    TREATAS(
+			        VALUES(fact_product_snapshot[product_sk]),
+			        fact_reviews[product_sk]
+			    )
+			)
+			```
+		formatString: #,##0
+		lineageTag: 82b9fc23-43b2-4896-b062-9854d5b30006
+
+
+	column review_id
+		dataType: int64
+		formatString: 0
+		lineageTag: bd0e8c06-10ec-4829-8f9d-1008ae97ae13
+		summarizeBy: sum
+		sourceColumn: review_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column product_sk
+		dataType: string
+		lineageTag: d898b7b5-4b64-4735-8ee1-f9e653e444bd
+		summarizeBy: none
+		sourceColumn: product_sk
+
+		annotation SummarizationSetBy = Automatic
+
+	column product_id
+		dataType: int64
+		formatString: 0
+		lineageTag: dedbe1ce-ba8c-420a-a19b-f5dfb34672c6
+		summarizeBy: none
+		sourceColumn: product_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column date_key
+		dataType: int64
+		formatString: 0
+		lineageTag: e312e752-0053-4910-9262-e26344ce37db
+		summarizeBy: sum
+		sourceColumn: date_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_hash
+		dataType: string
+		lineageTag: acbebda0-3cdf-4f50-b692-fb416dd81daa
+		summarizeBy: none
+		sourceColumn: customer_hash
+
+		annotation SummarizationSetBy = Automatic
+
+	column rating
+		dataType: int64
+		formatString: 0
+		lineageTag: 48ac7718-6db2-4dc2-9e90-b25a61a6f9cc
+		summarizeBy: sum
+		sourceColumn: rating
+
+		annotation SummarizationSetBy = Automatic
+
+	column sentiment_label
+		dataType: string
+		lineageTag: 737307b0-f8ef-46b6-ade6-dc121931d5f9
+		summarizeBy: none
+		sourceColumn: sentiment_label
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_after_sales_complaint
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 25c1f58e-981c-4144-9810-886abdd34faf
+		summarizeBy: none
+		sourceColumn: is_after_sales_complaint
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_defect_complaint
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 195e7f65-affd-43a7-a5f6-a4971a591c81
+		summarizeBy: none
+		sourceColumn: is_defect_complaint
+
+		annotation SummarizationSetBy = Automatic
+
+	column thank_count
+		dataType: int64
+		formatString: 0
+		lineageTag: 00a3ca71-8270-4959-b3e5-877c7ff7a347
+		summarizeBy: sum
+		sourceColumn: thank_count
+
+		annotation SummarizationSetBy = Automatic
+
+	column tokenized_text
+		dataType: string
+		lineageTag: fb538842-ff68-4806-a9d3-eb334ac4a0a7
+		summarizeBy: none
+		sourceColumn: tokenized_text
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_reviews = m
+		mode: import
+		source =
+				let
+				    Source = Excel.Workbook(File.Contents("E:\baitap\Project1\tiki-market-platform\dashboard\data\tiki_market_dwh_gold.xlsx"), null, true),
+				    fact_reviews_Sheet = Source{[Item="fact_reviews",Kind="Sheet"]}[Data],
+				    #"Promoted Headers" = Table.PromoteHeaders(fact_reviews_Sheet, [PromoteAllScalars=true]),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"review_id", Int64.Type}, {"product_sk", type text}, {"product_id", Int64.Type}, {"date_key", Int64.Type}, {"customer_hash", type text}, {"rating", Int64.Type}, {"sentiment_label", type text}, {"is_after_sales_complaint", type logical}, {"is_defect_complaint", type logical}, {"thank_count", Int64.Type}, {"tokenized_text", type text}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+

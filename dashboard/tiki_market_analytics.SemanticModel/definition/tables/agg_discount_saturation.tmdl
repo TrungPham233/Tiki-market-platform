@@ -1,0 +1,72 @@
+table agg_discount_saturation
+	lineageTag: 48c84218-7394-4db6-9528-8761e54a102c
+
+	measure 'Avg Units Sold' = AVERAGE(agg_discount_saturation[avg_quantity_sold])
+		formatString: #,##0.0
+		lineageTag: 93a8fb12-32a1-4354-a951-8743c4a20007
+
+	measure 'Discount SKU Count' = SUM(agg_discount_saturation[sku_count])
+		formatString: #,##0
+		lineageTag: 93a8fb12-32a1-4354-a951-8743c4a20008
+
+
+	column discount_bracket
+		dataType: string
+		lineageTag: 0bb366c1-01a4-4672-b8b2-bf65a326fd8d
+		summarizeBy: none
+		sourceColumn: discount_bracket
+
+		annotation SummarizationSetBy = Automatic
+
+	column sku_count
+		dataType: int64
+		formatString: 0
+		lineageTag: bc123cb6-bbc9-4c8d-9330-3999596298f1
+		summarizeBy: sum
+		sourceColumn: sku_count
+
+		annotation SummarizationSetBy = Automatic
+
+	column avg_quantity_sold
+		dataType: double
+		lineageTag: b7d79f90-6a47-4613-ada2-7569ac6a1738
+		summarizeBy: sum
+		sourceColumn: avg_quantity_sold
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column median_quantity_sold
+		dataType: double
+		lineageTag: e3315153-cb5e-4922-83c3-b041f7909d62
+		summarizeBy: sum
+		sourceColumn: median_quantity_sold
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column avg_rating
+		dataType: double
+		lineageTag: 57ab64d8-506d-4d77-aca9-7fa67b075bb9
+		summarizeBy: sum
+		sourceColumn: avg_rating
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition agg_discount_saturation = m
+		mode: import
+		source =
+				let
+				    Source = Excel.Workbook(File.Contents("E:\baitap\Project1\tiki-market-platform\dashboard\data\tiki_market_dwh_gold.xlsx"), null, true),
+				    agg_discount_saturation_Sheet = Source{[Item="agg_discount_saturation",Kind="Sheet"]}[Data],
+				    #"Promoted Headers" = Table.PromoteHeaders(agg_discount_saturation_Sheet, [PromoteAllScalars=true]),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"discount_bracket", type text}, {"sku_count", Int64.Type}, {"avg_quantity_sold", type number}, {"median_quantity_sold", type number}, {"avg_rating", type number}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+

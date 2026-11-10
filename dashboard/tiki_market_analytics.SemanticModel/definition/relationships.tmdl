@@ -1,0 +1,70 @@
+relationship 1ba175a7-1369-4d5c-b17f-1181d4869340
+	joinOnDateBehavior: datePartOnly
+	fromColumn: alerts.triggered_at
+	toColumn: LocalDateTable_6d4fb0ab-8bee-4ffc-b7a7-8f9e402fc14d.Date
+
+relationship f86cd2fd-5c06-4866-b3f4-29e594c28095
+	joinOnDateBehavior: datePartOnly
+	fromColumn: dim_product.valid_from
+	toColumn: LocalDateTable_d8734ea3-55e0-496c-8ed5-b85992fa09f8.Date
+
+relationship abea4c30-7b78-4132-acc9-bdd14c0aa153
+	joinOnDateBehavior: datePartOnly
+	fromColumn: dim_product.valid_to
+	toColumn: LocalDateTable_9ba340d7-d7d0-4d5a-882d-6988c0748b12.Date
+
+relationship a714cf22-620d-4e7e-ad60-128e7655557e
+	joinOnDateBehavior: datePartOnly
+	fromColumn: dim_date.full_date
+	toColumn: LocalDateTable_ea42d29c-00d0-4b1e-801d-8eb4174a121f.Date
+
+// Star Schema Core Fact Relationships (All ACTIVE)
+relationship rel_fact_product_to_dim_product
+	fromColumn: fact_product_snapshot.product_id
+	toColumn: dim_product.product_id
+
+relationship rel_fact_product_to_dim_brand
+	fromColumn: fact_product_snapshot.brand_id
+	toColumn: dim_brand.brand_id
+
+relationship rel_fact_product_to_dim_seller
+	fromColumn: fact_product_snapshot.seller_id
+	toColumn: dim_seller.seller_id
+
+relationship rel_fact_product_to_dim_subcategory
+	fromColumn: fact_product_snapshot.subcategory_id
+	toColumn: dim_subcategory.subcategory_id
+
+relationship rel_fact_product_to_dim_date
+	fromColumn: fact_product_snapshot.date_key
+	toColumn: dim_date.date_key
+
+// Fact Reviews to Product and Date Dimensions (ACTIVE)
+relationship rel_fact_reviews_to_dim_product
+	fromColumn: fact_reviews.product_id
+	toColumn: dim_product.product_id
+
+relationship rel_fact_reviews_to_dim_date
+	fromColumn: fact_reviews.date_key
+	toColumn: dim_date.date_key
+
+// Inactive secondary paths to avoid circular / snowflake loops
+relationship rel_dim_product_to_dim_brand_inactive
+	isActive: false
+	fromColumn: dim_product.brand_id
+	toColumn: dim_brand.brand_id
+
+relationship rel_dim_product_to_dim_seller_inactive
+	isActive: false
+	fromColumn: dim_product.seller_id
+	toColumn: dim_seller.seller_id
+
+relationship rel_dim_product_to_dim_subcategory_inactive
+	isActive: false
+	fromColumn: dim_product.subcategory_id
+	toColumn: dim_subcategory.subcategory_id
+
+relationship rel_fact_reviews_product_sk_inactive
+	isActive: false
+	fromColumn: fact_reviews.product_sk
+	toColumn: fact_product_snapshot.product_sk

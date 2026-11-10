@@ -1,0 +1,76 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.1.0/schema.json",
+  "name": "tree_brand_03",
+  "position": {
+    "x": 40,
+    "y": 235,
+    "z": 2000,
+    "height": 460,
+    "width": 960,
+    "tabOrder": 2000
+  },
+  "visual": {
+    "visualType": "treemap",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_brand"
+                    }
+                  },
+                  "Property": "brand_name"
+                }
+              },
+              "queryRef": "dim_brand.brand_name"
+            }
+          ]
+        },
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_product_snapshot"
+                    }
+                  },
+                  "Property": "Total Estimated Revenue"
+                }
+              },
+              "queryRef": "fact_product_snapshot.Total Estimated Revenue"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Thị phần Doanh thu theo Thương hiệu (Brand Revenue Treemap)'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

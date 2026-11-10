@@ -1,0 +1,33 @@
+table dim_subcategory
+	lineageTag: ad6399ea-5662-4dd3-bf48-9fe8c2c0854a
+
+	column subcategory_id
+		dataType: int64
+		formatString: 0
+		lineageTag: b56e778e-1a39-42ea-9168-2e718b8dd24c
+		summarizeBy: none
+		sourceColumn: subcategory_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column subcategory_name
+		dataType: string
+		lineageTag: f19f1634-d2c8-4fa9-9ec8-418095bcba8e
+		summarizeBy: none
+		sourceColumn: subcategory_name
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_subcategory = m
+		mode: import
+		source =
+				let
+				    Source = Excel.Workbook(File.Contents("E:\baitap\Project1\tiki-market-platform\dashboard\data\tiki_market_dwh_gold.xlsx"), null, true),
+				    dim_subcategory_Sheet = Source{[Item="dim_subcategory",Kind="Sheet"]}[Data],
+				    #"Promoted Headers" = Table.PromoteHeaders(dim_subcategory_Sheet, [PromoteAllScalars=true]),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"subcategory_id", Int64.Type}, {"subcategory_name", type text}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,81 @@
+table agg_brand_market_share
+	lineageTag: cc24ce8b-657f-4c18-8585-827f82e7ffb7
+
+	column brand_name
+		dataType: string
+		lineageTag: 4f27fc5c-6467-4af8-8067-4d63a12f0c19
+		summarizeBy: none
+		sourceColumn: brand_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column sku_count
+		dataType: int64
+		formatString: 0
+		lineageTag: e2ee589c-b29c-4763-9280-22482fc16f1a
+		summarizeBy: none
+		sourceColumn: sku_count
+
+		annotation SummarizationSetBy = Automatic
+
+	column total_quantity_sold
+		dataType: int64
+		formatString: 0
+		lineageTag: 51d6d412-1155-45d8-9c65-09efd4782652
+		summarizeBy: none
+		sourceColumn: total_quantity_sold
+
+		annotation SummarizationSetBy = Automatic
+
+	column total_estimated_revenue
+		dataType: int64
+		formatString: 0
+		lineageTag: 8d41f27a-73be-40df-86dd-09b91bc9ab60
+		summarizeBy: none
+		sourceColumn: total_estimated_revenue
+
+		annotation SummarizationSetBy = Automatic
+
+	column avg_rating
+		dataType: double
+		lineageTag: 6317809a-b380-4dc2-8525-7ab1c8904c58
+		summarizeBy: none
+		sourceColumn: avg_rating
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column revenue_share_pct
+		dataType: double
+		lineageTag: de03471c-b8a6-4b82-88d9-5d43f8369529
+		summarizeBy: none
+		sourceColumn: revenue_share_pct
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column volume_share_pct
+		dataType: double
+		lineageTag: 96298b5f-c856-4449-b9fa-1e7d62322c37
+		summarizeBy: none
+		sourceColumn: volume_share_pct
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition agg_brand_market_share = m
+		mode: import
+		source =
+				let
+				    Source = Excel.Workbook(File.Contents("E:\baitap\Project1\tiki-market-platform\dashboard\data\tiki_market_dwh_gold.xlsx"), null, true),
+				    agg_brand_market_share_Sheet = Source{[Item="agg_brand_market_share",Kind="Sheet"]}[Data],
+				    #"Promoted Headers" = Table.PromoteHeaders(agg_brand_market_share_Sheet, [PromoteAllScalars=true]),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"brand_name", type text}, {"sku_count", Int64.Type}, {"total_quantity_sold", Int64.Type}, {"total_estimated_revenue", Int64.Type}, {"avg_rating", type number}, {"revenue_share_pct", type number}, {"volume_share_pct", type number}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+

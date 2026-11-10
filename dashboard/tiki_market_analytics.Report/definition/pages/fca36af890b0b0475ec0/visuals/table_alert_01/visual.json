@@ -1,0 +1,150 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.1.0/schema.json",
+  "name": "table_alert_01",
+  "position": {
+    "x": 40,
+    "y": 680,
+    "z": 3000,
+    "height": 370,
+    "width": 1840,
+    "tabOrder": 3000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Rows": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "alerts"
+                    }
+                  },
+                  "Property": "triggered_at"
+                }
+              },
+              "queryRef": "alerts.triggered_at"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "alerts"
+                    }
+                  },
+                  "Property": "product_name"
+                }
+              },
+              "queryRef": "alerts.product_name"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "alerts"
+                    }
+                  },
+                  "Property": "brand_name"
+                }
+              },
+              "queryRef": "alerts.brand_name"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "alerts"
+                    }
+                  },
+                  "Property": "seller_name"
+                }
+              },
+              "queryRef": "alerts.seller_name"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "alerts"
+                    }
+                  },
+                  "Property": "old_price"
+                }
+              },
+              "queryRef": "alerts.old_price"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "alerts"
+                    }
+                  },
+                  "Property": "new_price"
+                }
+              },
+              "queryRef": "alerts.new_price"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "alerts"
+                    }
+                  },
+                  "Property": "price_drop_pct"
+                }
+              },
+              "queryRef": "alerts.price_drop_pct"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "alerts"
+                    }
+                  },
+                  "Property": "savings_amount"
+                }
+              },
+              "queryRef": "alerts.savings_amount"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Cảnh báo Giảm giá sốc & Flash Sale gần đây (Real-time Price Drop Alerts)'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

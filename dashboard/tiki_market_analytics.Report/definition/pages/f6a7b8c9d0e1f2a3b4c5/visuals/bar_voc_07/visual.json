@@ -1,0 +1,76 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.1.0/schema.json",
+  "name": "bar_voc_07",
+  "position": {
+    "x": 970,
+    "y": 235,
+    "z": 2100,
+    "height": 460,
+    "width": 910,
+    "tabOrder": 2100
+  },
+  "visual": {
+    "visualType": "clusteredBarChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "agg_voc_complaint_causes"
+                    }
+                  },
+                  "Property": "complaint_category"
+                }
+              },
+              "queryRef": "agg_voc_complaint_causes.complaint_category"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "agg_voc_complaint_causes"
+                    }
+                  },
+                  "Property": "Complaint % Share"
+                }
+              },
+              "queryRef": "agg_voc_complaint_causes.Complaint % Share"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Tỷ trọng Khiếu nại trong nhóm Đánh giá Tiêu cực (% Share of 1-2★)'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.1.0/schema.json",
+  "name": "col_disc_sku_02",
+  "position": {
+    "x": 960,
+    "y": 190,
+    "z": 2100,
+    "height": 420,
+    "width": 920,
+    "tabOrder": 2100
+  },
+  "visual": {
+    "visualType": "clusteredColumnChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "agg_discount_saturation"
+                    }
+                  },
+                  "Property": "discount_bracket"
+                }
+              },
+              "queryRef": "agg_discount_saturation.discount_bracket"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "agg_discount_saturation"
+                    }
+                  },
+                  "Property": "Discount SKU Count"
+                }
+              },
+              "queryRef": "agg_discount_saturation.Discount SKU Count"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Phân bổ số lượng SKU theo Khung giảm giá (SKU Distribution)'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

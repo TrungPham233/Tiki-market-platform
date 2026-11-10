@@ -1,0 +1,185 @@
+table fact_product_snapshot
+	lineageTag: 5e3965a2-75be-4534-a815-b4c69496b368
+
+	measure 'Total Estimated Revenue' = SUMX(fact_product_snapshot, fact_product_snapshot[price] * fact_product_snapshot[quantity_sold])
+		formatString: #,##0₫
+		lineageTag: 71a8fb12-32a1-4354-a951-8743c4a20001
+
+	measure 'Total Volume Sold' = SUM(fact_product_snapshot[quantity_sold])
+		formatString: #,##0
+		lineageTag: 71a8fb12-32a1-4354-a951-8743c4a20002
+
+	measure 'Average Rating' = AVERAGE(fact_product_snapshot[rating_average])
+		formatString: 0.00
+		lineageTag: 71a8fb12-32a1-4354-a951-8743c4a20003
+
+	measure 'Total Active SKUs' = DISTINCTCOUNT(fact_product_snapshot[product_id])
+		formatString: #,##0
+		lineageTag: 71a8fb12-32a1-4354-a951-8743c4a20004
+
+	measure 'Average Discount Rate %' = AVERAGE(fact_product_snapshot[discount_rate_calc])
+		formatString: 0.0%
+		lineageTag: 71a8fb12-32a1-4354-a951-8743c4a20005
+
+	measure 'CR5 Index %' = ```
+			VAR Top5Revenue = 
+			    CALCULATE(
+			        [Total Estimated Revenue],
+			        TOPN(5, ALL(dim_brand[brand_name]), [Total Estimated Revenue], DESC)
+			    )
+			VAR TotalRevenueAll = 
+			    CALCULATE([Total Estimated Revenue], ALL(dim_brand))
+			RETURN
+			    DIVIDE(Top5Revenue, TotalRevenueAll, 0)
+			```
+		formatString: 0.0%
+		lineageTag: 71a8fb12-32a1-4354-a951-8743c4a20006
+
+
+	column snapshot_id
+		dataType: string
+		lineageTag: 7e96287f-5956-4ac0-a2bd-c2d88773cb58
+		summarizeBy: none
+		sourceColumn: snapshot_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column date_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 12d00a7c-6414-444b-a7b1-93e3c6fb98dd
+		summarizeBy: none
+		sourceColumn: date_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column product_sk
+		dataType: string
+		lineageTag: c4d399a3-db53-4265-a65e-8bf2ffe6ad18
+		summarizeBy: none
+		sourceColumn: product_sk
+
+		annotation SummarizationSetBy = Automatic
+
+	column product_id
+		dataType: int64
+		formatString: 0
+		lineageTag: 0c2d5fee-ae8b-451b-9a92-f325accd8d22
+		summarizeBy: none
+		sourceColumn: product_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column brand_id
+		dataType: int64
+		formatString: 0
+		lineageTag: 15fd158c-bb91-404f-8c11-e1b12ffa0d4a
+		summarizeBy: sum
+		sourceColumn: brand_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column seller_id
+		dataType: int64
+		formatString: 0
+		lineageTag: 97c481ef-84be-4fd2-8d1f-40719c990f7b
+		summarizeBy: sum
+		sourceColumn: seller_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column subcategory_id
+		dataType: int64
+		formatString: 0
+		lineageTag: b7c5a60d-4a62-4fb4-aef8-013863eb61e0
+		summarizeBy: sum
+		sourceColumn: subcategory_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column price
+		dataType: int64
+		formatString: 0
+		lineageTag: 04571ee5-1c9d-4fdd-a86e-4ed099707793
+		summarizeBy: sum
+		sourceColumn: price
+
+		annotation SummarizationSetBy = Automatic
+
+	column original_price
+		dataType: int64
+		formatString: 0
+		lineageTag: 36703b7e-1aa8-4bb1-98e8-adc923d6fc7b
+		summarizeBy: sum
+		sourceColumn: original_price
+
+		annotation SummarizationSetBy = Automatic
+
+	column discount_rate_calc
+		dataType: double
+		lineageTag: 96019f29-b151-4df9-a83e-1ec409a44b16
+		summarizeBy: sum
+		sourceColumn: discount_rate_calc
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column quantity_sold
+		dataType: int64
+		formatString: 0
+		lineageTag: 0645f8f3-51c1-4186-a6a3-e8003642c5e9
+		summarizeBy: sum
+		sourceColumn: quantity_sold
+
+		annotation SummarizationSetBy = Automatic
+
+	column rating_average
+		dataType: double
+		lineageTag: d4535bda-883f-4f1c-b3e4-bb3e56a5dc6a
+		summarizeBy: sum
+		sourceColumn: rating_average
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column review_count
+		dataType: int64
+		formatString: 0
+		lineageTag: 9562e9f9-39c1-4419-8385-0baf9501b977
+		summarizeBy: sum
+		sourceColumn: review_count
+
+		annotation SummarizationSetBy = Automatic
+
+	column price_segment
+		dataType: string
+		lineageTag: 134b2f2c-f15c-41a9-a722-1f155e3244a6
+		summarizeBy: none
+		sourceColumn: price_segment
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_discount_discrepancy
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 5b0996ed-e214-44ac-bb10-00b0f7f4e5b8
+		summarizeBy: none
+		sourceColumn: is_discount_discrepancy
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_product_snapshot = m
+		mode: import
+		source =
+				let
+				    Source = Excel.Workbook(File.Contents("E:\baitap\Project1\tiki-market-platform\dashboard\data\tiki_market_dwh_gold.xlsx"), null, true),
+				    fact_product_snapshot_Sheet = Source{[Item="fact_product_snapshot",Kind="Sheet"]}[Data],
+				    #"Promoted Headers" = Table.PromoteHeaders(fact_product_snapshot_Sheet, [PromoteAllScalars=true]),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"snapshot_id", type text}, {"date_key", Int64.Type}, {"product_sk", type text}, {"product_id", Int64.Type}, {"brand_id", Int64.Type}, {"seller_id", Int64.Type}, {"subcategory_id", Int64.Type}, {"price", Int64.Type}, {"original_price", Int64.Type}, {"discount_rate_calc", type number}, {"quantity_sold", Int64.Type}, {"rating_average", type number}, {"review_count", Int64.Type}, {"price_segment", type text}, {"is_discount_discrepancy", type logical}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+

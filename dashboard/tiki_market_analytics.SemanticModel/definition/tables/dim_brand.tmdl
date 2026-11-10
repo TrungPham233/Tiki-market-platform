@@ -1,0 +1,33 @@
+table dim_brand
+	lineageTag: 19869a60-df31-44cd-8630-be9816e7d3eb
+
+	column brand_id
+		dataType: int64
+		formatString: 0
+		lineageTag: e78e3ea7-6abd-4533-81d9-7a7fa19529ac
+		summarizeBy: sum
+		sourceColumn: brand_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column brand_name
+		dataType: string
+		lineageTag: 5d80a572-84e4-4383-99d0-fe8cf71a0a9c
+		summarizeBy: none
+		sourceColumn: brand_name
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_brand = m
+		mode: import
+		source =
+				let
+				    Source = Excel.Workbook(File.Contents("E:\baitap\Project1\tiki-market-platform\dashboard\data\tiki_market_dwh_gold.xlsx"), null, true),
+				    dim_brand_Sheet = Source{[Item="dim_brand",Kind="Sheet"]}[Data],
+				    #"Promoted Headers" = Table.PromoteHeaders(dim_brand_Sheet, [PromoteAllScalars=true]),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"brand_id", Int64.Type}, {"brand_name", type text}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+
