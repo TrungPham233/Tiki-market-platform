@@ -9,7 +9,6 @@ table agg_discount_saturation
 		formatString: #,##0
 		lineageTag: 93a8fb12-32a1-4354-a951-8743c4a20008
 
-
 	column discount_bracket
 		dataType: string
 		lineageTag: 0bb366c1-01a4-4672-b8b2-bf65a326fd8d

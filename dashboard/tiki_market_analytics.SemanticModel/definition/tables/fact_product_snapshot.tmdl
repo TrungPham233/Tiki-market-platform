@@ -35,7 +35,6 @@ table fact_product_snapshot
 		formatString: 0.0%
 		lineageTag: 71a8fb12-32a1-4354-a951-8743c4a20006
 
-
 	column snapshot_id
 		dataType: string
 		lineageTag: 7e96287f-5956-4ac0-a2bd-c2d88773cb58

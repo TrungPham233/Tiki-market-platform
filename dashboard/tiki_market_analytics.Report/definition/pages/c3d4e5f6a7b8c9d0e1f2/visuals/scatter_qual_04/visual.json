@@ -17,16 +17,21 @@
           "projections": [
             {
               "field": {
-                "Column": {
+                "Aggregation": {
                   "Expression": {
-                    "SourceRef": {
-                      "Entity": "fact_product_snapshot"
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "fact_product_snapshot"
+                        }
+                      },
+                      "Property": "review_count"
                     }
                   },
-                  "Property": "review_count"
+                  "Function": 2000
                 }
               },
-              "queryRef": "fact_product_snapshot.review_count"
+              "queryRef": "fact_product_snapshot.review_count (Average)"
             }
           ]
         },
@@ -34,16 +39,21 @@
           "projections": [
             {
               "field": {
-                "Column": {
+                "Aggregation": {
                   "Expression": {
-                    "SourceRef": {
-                      "Entity": "fact_product_snapshot"
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "fact_product_snapshot"
+                        }
+                      },
+                      "Property": "rating_average"
                     }
                   },
-                  "Property": "rating_average"
+                  "Function": 1
                 }
               },
-              "queryRef": "fact_product_snapshot.rating_average"
+              "queryRef": "fact_product_snapshot.rating_average (Average)"
             }
           ]
         },

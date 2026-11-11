@@ -536,26 +536,64 @@ def make_donut_chart(name, x, y, w, h, cat_entity, cat_col, val_entity, val_meas
     }
 
 
-def make_scatter_chart(name, x, y, w, h, x_entity, x_prop, y_entity, y_prop, det_entity, det_col, size_entity, size_measure, title, is_x_measure=False, is_y_measure=False, tab_order=2000):
-    x_field = {
-        "Measure" if is_x_measure else "Column": {
-            "Expression": {"SourceRef": {"Entity": x_entity}},
-            "Property": x_prop
+def make_scatter_chart(name, x, y, w, h, x_entity, x_prop, y_entity, y_prop, det_entity, det_col, size_entity, size_measure, title, is_x_measure=False, is_y_measure=False, x_agg_fn=1, y_agg_fn=1, tab_order=2000):
+    """
+    ScatterChart requires X and Y to be Measure or Aggregation — NOT raw Column.
+    is_x_measure / is_y_measure: True => Measure reference, False => Aggregation wrapper.
+    x_agg_fn / y_agg_fn: Aggregation function (0=Sum, 1=Average, 2=DistinctCount, 3=Min, 4=Max).
+    """
+    if is_x_measure:
+        x_field = {
+            "Measure": {
+                "Expression": {"SourceRef": {"Entity": x_entity}},
+                "Property": x_prop
+            }
         }
-    }
-    y_field = {
-        "Measure" if is_y_measure else "Column": {
-            "Expression": {"SourceRef": {"Entity": y_entity}},
-            "Property": y_prop
+        x_query_ref = f"{x_entity}.{x_prop}"
+    else:
+        x_field = {
+            "Aggregation": {
+                "Expression": {
+                    "Column": {
+                        "Expression": {"SourceRef": {"Entity": x_entity}},
+                        "Property": x_prop
+                    }
+                },
+                "Function": x_agg_fn
+            }
         }
-    }
+        agg_names = {0: "Sum", 1: "Average", 2: "CountDistinct", 3: "Min", 4: "Max"}
+        x_query_ref = f"{x_entity}.{x_prop} ({agg_names.get(x_agg_fn, 'Average')})"
+
+    if is_y_measure:
+        y_field = {
+            "Measure": {
+                "Expression": {"SourceRef": {"Entity": y_entity}},
+                "Property": y_prop
+            }
+        }
+        y_query_ref = f"{y_entity}.{y_prop}"
+    else:
+        y_field = {
+            "Aggregation": {
+                "Expression": {
+                    "Column": {
+                        "Expression": {"SourceRef": {"Entity": y_entity}},
+                        "Property": y_prop
+                    }
+                },
+                "Function": y_agg_fn
+            }
+        }
+        agg_names = {0: "Sum", 1: "Average", 2: "CountDistinct", 3: "Min", 4: "Max"}
+        y_query_ref = f"{y_entity}.{y_prop} ({agg_names.get(y_agg_fn, 'Average')})"
 
     query_state = {
         "X": {
             "projections": [
                 {
                     "field": x_field,
-                    "queryRef": f"{x_entity}.{x_prop}"
+                    "queryRef": x_query_ref
                 }
             ]
         },
@@ -563,7 +601,7 @@ def make_scatter_chart(name, x, y, w, h, x_entity, x_prop, y_entity, y_prop, det
             "projections": [
                 {
                     "field": y_field,
-                    "queryRef": f"{y_entity}.{y_prop}"
+                    "queryRef": y_query_ref
                 }
             ]
         },

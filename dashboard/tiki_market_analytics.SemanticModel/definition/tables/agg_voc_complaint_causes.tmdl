@@ -9,7 +9,6 @@ table agg_voc_complaint_causes
 		formatString: 0.0%
 		lineageTag: a4a8fb12-32a1-4354-a951-8743c4a20010
 
-
 	column complaint_category
 		dataType: string
 		lineageTag: 5c32a24f-a3c0-4c71-b0c8-22ef7f1f4ef9

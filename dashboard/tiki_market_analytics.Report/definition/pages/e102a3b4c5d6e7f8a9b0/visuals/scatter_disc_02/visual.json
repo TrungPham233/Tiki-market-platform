@@ -4,10 +4,10 @@
   "position": {
     "x": 40,
     "y": 630,
-    "z": 2200,
+    "z": 2000,
     "height": 420,
     "width": 1840,
-    "tabOrder": 2200
+    "tabOrder": 2000
   },
   "visual": {
     "visualType": "scatterChart",
@@ -17,16 +17,21 @@
           "projections": [
             {
               "field": {
-                "Column": {
+                "Aggregation": {
                   "Expression": {
-                    "SourceRef": {
-                      "Entity": "fact_product_snapshot"
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "fact_product_snapshot"
+                        }
+                      },
+                      "Property": "discount_rate_calc"
                     }
                   },
-                  "Property": "discount_rate_calc"
+                  "Function": 2200
                 }
               },
-              "queryRef": "fact_product_snapshot.discount_rate_calc"
+              "queryRef": "fact_product_snapshot.discount_rate_calc (Average)"
             }
           ]
         },
@@ -34,16 +39,21 @@
           "projections": [
             {
               "field": {
-                "Column": {
+                "Aggregation": {
                   "Expression": {
-                    "SourceRef": {
-                      "Entity": "fact_product_snapshot"
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "fact_product_snapshot"
+                        }
+                      },
+                      "Property": "quantity_sold"
                     }
                   },
-                  "Property": "quantity_sold"
+                  "Function": 1
                 }
               },
-              "queryRef": "fact_product_snapshot.quantity_sold"
+              "queryRef": "fact_product_snapshot.quantity_sold (Average)"
             }
           ]
         },

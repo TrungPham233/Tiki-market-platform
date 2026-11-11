@@ -57,7 +57,7 @@ table fact_reviews
 		formatString: 0.0%
 		lineageTag: 82b9fc23-43b2-4896-b062-9854d5b30005
 
-	measure 'Reviews By Seller' = ```
+	measure 'Reviews By Seller' =
 			CALCULATE(
 			    COUNTROWS(fact_reviews),
 			    TREATAS(
@@ -65,10 +65,8 @@ table fact_reviews
 			        fact_reviews[product_sk]
 			    )
 			)
-			```
 		formatString: #,##0
 		lineageTag: 82b9fc23-43b2-4896-b062-9854d5b30006
-
 
 	column review_id
 		dataType: int64
