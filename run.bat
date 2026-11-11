@@ -9,6 +9,7 @@ IF "%1"=="test" GOTO test
 IF "%1"=="crawl" GOTO crawl
 IF "%1"=="medallion" GOTO medallion
 IF "%1"=="dwh" GOTO dwh
+IF "%1"=="dashboard" GOTO dashboard
 IF "%1"=="all" GOTO all
 GOTO help
 
@@ -35,22 +36,29 @@ echo Syncing Gold layer to Data Warehouse...
 python data_warehouse/load_gold_to_postgres.py
 GOTO end
 
+:dashboard
+echo Regenerating Power BI Project (PBIP) semantic model and visuals...
+python dashboard/generate_pbip_dashboards.py
+GOTO end
+
 :all
 echo Executing End-to-End Pipeline...
 call %0 medallion
 call %0 dwh
+call %0 dashboard
 call %0 test
 echo All tasks executed successfully!
 GOTO end
 
 :help
-echo Usage: run.bat [test ^| crawl ^| medallion ^| dwh ^| all]
+echo Usage: run.bat [test ^| crawl ^| medallion ^| dwh ^| dashboard ^| all]
 echo.
 echo Commands:
-echo   test       Run pytest suite across all modules (25 unit tests)
+echo   test       Run pytest suite across all modules (31 unit tests)
 echo   crawl      Trigger Tiki crawlers and price simulator
 echo   medallion  Execute Bronze - Silver - Gold Lakehouse ETL
 echo   dwh        Sync Gold Parquet tables into PostgreSQL/SQLite Data Warehouse
+echo   dashboard  Regenerate Power BI Project (PBIP) semantic model and report
 echo   all        Run entire end-to-end pipeline and test suite
 GOTO end
 

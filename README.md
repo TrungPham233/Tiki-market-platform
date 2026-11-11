@@ -112,7 +112,7 @@ copy .env.example .env
 
 ### 3. Run Pipeline via Windows Task Runner
 ```cmd
-# Run entire test suite (25 tests)
+# Run entire test suite (31 tests)
 run.bat test
 
 # Run Medallion Pipeline (Bronze -> Silver -> Gold)
@@ -120,6 +120,9 @@ run.bat medallion
 
 # Sync Gold Lakehouse into Data Warehouse
 run.bat dwh
+
+# Regenerate Power BI Project (PBIP) definition & visuals
+run.bat dashboard
 
 # Run full end-to-end flow
 run.bat all
@@ -140,37 +143,43 @@ docker compose up -d
 
 ---
 
-## 🧪 Comprehensive Unit Testing (25/25 PASSED)
+## 🧪 Comprehensive Unit Testing (31/31 PASSED)
 
 ```bash
 $ python -m pytest tests/ -v
 ============================= test session starts =============================
-tests/test_airflow_and_quality.py::test_check_not_empty PASSED           [  4%]
-tests/test_airflow_and_quality.py::test_check_not_null PASSED            [  8%]
-tests/test_airflow_and_quality.py::test_check_unique PASSED              [ 12%]
-tests/test_airflow_and_quality.py::test_check_numeric_range PASSED       [ 16%]
-tests/test_airflow_and_quality.py::test_check_anomaly_threshold PASSED   [ 20%]
-tests/test_airflow_and_quality.py::test_silver_quality_gate_passes_clean_data PASSED [ 24%]
-tests/test_airflow_and_quality.py::test_silver_quality_gate_fails_corrupted_data PASSED [ 28%]
-tests/test_data_collection.py::test_hash_identifier PASSED               [ 32%]
-tests/test_data_collection.py::test_parse_product_record PASSED          [ 36%]
-tests/test_data_collection.py::test_parse_deleted_product PASSED         [ 40%]
-tests/test_data_collection.py::test_parse_review_record PASSED           [ 44%]
-tests/test_data_collection.py::test_generate_price_event PASSED          [ 48%]
-tests/test_kafka.py::test_product_schema_validation_valid PASSED         [ 52%]
-tests/test_kafka.py::test_product_schema_validation_missing_required PASSED [ 56%]
-tests/test_kafka.py::test_product_schema_validation_negative_price PASSED [ 60%]
-tests/test_kafka.py::test_price_event_schema_validation PASSED           [ 64%]
-tests/test_kafka.py::test_review_schema_validation PASSED                [ 68%]
-tests/test_kafka.py::test_producer_dry_run_send PASSED                   [ 72%]
-tests/test_medallion_spark.py::test_normalize_brand PASSED               [ 76%]
-tests/test_medallion_spark.py::test_clean_html_reviews PASSED            [ 80%]
-tests/test_medallion_spark.py::test_sentiment_labeling PASSED            [ 84%]
-tests/test_medallion_spark.py::test_voc_complaint_categorization PASSED  [ 88%]
-tests/test_medallion_spark.py::test_evaluate_price_alert_flash_sale PASSED [ 92%]
+tests/test_airflow_and_quality.py::test_check_not_empty PASSED           [  3%]
+tests/test_airflow_and_quality.py::test_check_not_null PASSED            [  6%]
+tests/test_airflow_and_quality.py::test_check_unique PASSED              [  9%]
+tests/test_airflow_and_quality.py::test_check_numeric_range PASSED       [ 12%]
+tests/test_airflow_and_quality.py::test_check_anomaly_threshold PASSED   [ 16%]
+tests/test_silver_quality_gate_passes_clean_data PASSED                  [ 19%]
+tests/test_silver_quality_gate_fails_corrupted_data PASSED               [ 22%]
+tests/test_dashboard_pbip.py::test_pbip_files_exist PASSED               [ 25%]
+tests/test_dashboard_pbip.py::test_pages_metadata_integrity PASSED       [ 29%]
+tests/test_dashboard_pbip.py::test_all_pages_and_visuals PASSED          [ 32%]
+tests/test_dashboard_pbip.py::test_semantic_model_tmdl PASSED            [ 35%]
+tests/test_dashboard_pbip.py::test_relationships_star_schema PASSED      [ 38%]
+tests/test_dashboard_pbip.py::test_visual_data_roles_and_theme PASSED    [ 41%]
+tests/test_data_collection.py::test_hash_identifier PASSED               [ 45%]
+tests/test_data_collection.py::test_parse_product_record PASSED          [ 48%]
+tests/test_data_collection.py::test_parse_deleted_product PASSED         [ 51%]
+tests/test_data_collection.py::test_parse_review_record PASSED           [ 54%]
+tests/test_data_collection.py::test_generate_price_event PASSED          [ 58%]
+tests/test_kafka.py::test_product_schema_validation_valid PASSED         [ 61%]
+tests/test_kafka.py::test_product_schema_validation_missing_required PASSED [ 64%]
+tests/test_kafka.py::test_product_schema_validation_negative_price PASSED [ 67%]
+tests/test_kafka.py::test_price_event_schema_validation PASSED           [ 70%]
+tests/test_kafka.py::test_review_schema_validation PASSED                [ 74%]
+tests/test_kafka.py::test_producer_dry_run_send PASSED                   [ 77%]
+tests/test_medallion_spark.py::test_normalize_brand PASSED               [ 80%]
+tests/test_medallion_spark.py::test_clean_html_reviews PASSED            [ 83%]
+tests/test_medallion_spark.py::test_sentiment_labeling PASSED            [ 87%]
+tests/test_medallion_spark.py::test_voc_complaint_categorization PASSED  [ 90%]
+tests/test_medallion_spark.py::test_evaluate_price_alert_flash_sale PASSED [ 93%]
 tests/test_medallion_spark.py::test_evaluate_price_alert_normal_no_trigger PASSED [ 96%]
 tests/test_serving_layer.py::test_sqlite_dwh_sync_and_views PASSED       [100%]
-============================= 25 passed in 2.58s ==============================
+============================= 31 passed in 2.01s ==============================
 ```
 
 ---
