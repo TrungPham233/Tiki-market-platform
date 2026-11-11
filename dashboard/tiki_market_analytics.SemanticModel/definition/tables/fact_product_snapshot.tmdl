@@ -1,6 +1,5 @@
 table fact_product_snapshot
 	lineageTag: 5e3965a2-75be-4534-a815-b4c69496b368
-
 	measure 'Total Estimated Revenue' = SUMX(fact_product_snapshot, fact_product_snapshot[price] * fact_product_snapshot[quantity_sold])
 		formatString: #,##0₫
 		lineageTag: 71a8fb12-32a1-4354-a951-8743c4a20001
@@ -17,7 +16,7 @@ table fact_product_snapshot
 		formatString: #,##0
 		lineageTag: 71a8fb12-32a1-4354-a951-8743c4a20004
 
-	measure 'Average Discount Rate %' = AVERAGE(fact_product_snapshot[discount_rate_calc])
+	measure 'Average Discount Rate %' = DIVIDE(AVERAGE(fact_product_snapshot[discount_rate_calc]), 100, 0)
 		formatString: 0.0%
 		lineageTag: 71a8fb12-32a1-4354-a951-8743c4a20005
 

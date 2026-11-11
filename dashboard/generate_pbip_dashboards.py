@@ -1,6 +1,9 @@
 """
 Script to configure TMDL measures, Star Schema relationships,
 and design the 7 analytical dashboard pages in the Power BI Project (PBIP).
+Includes professional modern dashboard theming, bug fixes for visual data roles
+(treemap Group, scatter Category, tableEx Values, card categoryLabels off),
+and accurate scale calculations for percentage measures.
 """
 
 from pathlib import Path
@@ -37,7 +40,7 @@ def update_fact_product_snapshot():
 \t\tformatString: #,##0
 \t\tlineageTag: 71a8fb12-32a1-4354-a951-8743c4a20004
 
-\tmeasure 'Average Discount Rate %' = AVERAGE(fact_product_snapshot[discount_rate_calc])
+\tmeasure 'Average Discount Rate %' = DIVIDE(AVERAGE(fact_product_snapshot[discount_rate_calc]), 100, 0)
 \t\tformatString: 0.0%
 \t\tlineageTag: 71a8fb12-32a1-4354-a951-8743c4a20005
 
@@ -59,15 +62,20 @@ def update_fact_product_snapshot():
 \t\tformatString: #,##0
 \t\tlineageTag: 71a8fb12-32a1-4354-a951-8743c4a20007
 """
-    # Insert right after the table declaration and lineageTag
-    if "measure 'Total Estimated Revenue'" not in content:
+    # Replace measures block if already present or insert
+    if "measure 'Total Estimated Revenue'" in content:
+        # Strip old measures block from table fact_product_snapshot up to column snapshot_id
+        pattern = r"(table fact_product_snapshot\n\tlineageTag: [^\n]+).*?(\n\tcolumn snapshot_id)"
+        replacement = r"\1" + measures + r"\2"
+        content = re.sub(pattern, replacement, content, flags=re.DOTALL)
+        tmdl_path.write_text(content, encoding="utf-8")
+        print("Updated fact_product_snapshot.tmdl with corrected DAX measures")
+    else:
         target = "table fact_product_snapshot\n\tlineageTag: 5e3965a2-75be-4534-a815-b4c69496b368"
         replacement = target + "\n" + measures
         content = content.replace(target, replacement)
         tmdl_path.write_text(content, encoding="utf-8")
-        print("Updated fact_product_snapshot.tmdl with DAX measures")
-    else:
-        print("fact_product_snapshot.tmdl already has measures")
+        print("Inserted DAX measures into fact_product_snapshot.tmdl")
 
 
 def update_fact_reviews():
@@ -173,20 +181,27 @@ def update_agg_tables():
 
     p2 = SEMANTIC_DIR / "tables" / "agg_voc_complaint_causes.tmdl"
     c2 = p2.read_text(encoding="utf-8")
-    if "measure 'Total Complaint Count'" not in c2:
-        m2 = """
+    m2 = """
 \tmeasure 'Total Complaint Count' = SUM(agg_voc_complaint_causes[complaint_count])
 \t\tformatString: #,##0
 \t\tlineageTag: a4a8fb12-32a1-4354-a951-8743c4a20009
 
-\tmeasure 'Complaint % Share' = AVERAGE(agg_voc_complaint_causes[percentage_of_negative])
+\tmeasure 'Complaint % Share' = DIVIDE(AVERAGE(agg_voc_complaint_causes[percentage_of_negative]), 100, 0)
 \t\tformatString: 0.0%
 \t\tlineageTag: a4a8fb12-32a1-4354-a951-8743c4a20010
 """
+    if "measure 'Total Complaint Count'" in c2:
+        # Update measure with division by 100
+        pattern = r"(table agg_voc_complaint_causes\n\tlineageTag: [^\n]+).*?(\n\tcolumn complaint_category)"
+        replacement = r"\1" + m2 + r"\2"
+        c2 = re.sub(pattern, replacement, c2, flags=re.DOTALL)
+        p2.write_text(c2, encoding="utf-8")
+        print("Updated agg_voc_complaint_causes.tmdl with corrected scale measure")
+    else:
         target = "table agg_voc_complaint_causes\n\tlineageTag: a098afdc-64e8-4aae-9dd3-89fb077c6810"
         c2 = c2.replace(target, target + "\n" + m2)
         p2.write_text(c2, encoding="utf-8")
-        print("Updated agg_voc_complaint_causes.tmdl")
+        print("Inserted measures into agg_voc_complaint_causes.tmdl")
 
 
 def update_relationships():
@@ -260,10 +275,13 @@ relationship rel_fact_reviews_product_sk_inactive
 \ttoColumn: fact_product_snapshot.product_sk
 """
     tmdl_path.write_text(clean_relationships, encoding="utf-8")
-    print("Updated relationships.tmdl with pure Star Schema")
+    print("Updated relationships.tmdl with pure Star Schema (unidirectional)")
 
 
-# Visual builders
+# =====================================================================
+# Visual Builders with Standardized Formatting & Schema Conformance
+# =====================================================================
+
 def make_textbox(name, x, y, w, h, text):
     return {
         "$schema": SCHEMA_VISUAL,
@@ -294,6 +312,9 @@ def make_textbox(name, x, y, w, h, text):
 
 
 def make_card(name, x, y, w, h, entity, measure_name, title, tab_order=1000):
+    """
+    Single-value KPI Card with categoryLabels turned off to eliminate redundant sub-labels.
+    """
     return {
         "$schema": SCHEMA_VISUAL,
         "name": name,
@@ -316,6 +337,15 @@ def make_card(name, x, y, w, h, entity, measure_name, title, tab_order=1000):
                         ]
                     }
                 }
+            },
+            "objects": {
+                "categoryLabels": [
+                    {
+                        "properties": {
+                            "show": {"expr": {"Literal": {"Value": "false"}}}
+                        }
+                    }
+                ]
             },
             "visualContainerObjects": {
                 "title": [
@@ -437,6 +467,9 @@ def make_column_chart(name, x, y, w, h, cat_entity, cat_col, val_entity, val_mea
 
 
 def make_treemap(name, x, y, w, h, cat_entity, cat_col, val_entity, val_measure, title, tab_order=2000):
+    """
+    Treemap visual in PBIR schema uses 'Group' data role for category buckets.
+    """
     return {
         "$schema": SCHEMA_VISUAL,
         "name": name,
@@ -445,7 +478,7 @@ def make_treemap(name, x, y, w, h, cat_entity, cat_col, val_entity, val_measure,
             "visualType": "treemap",
             "query": {
                 "queryState": {
-                    "Category": {
+                    "Group": {
                         "projections": [
                             {
                                 "field": {
@@ -542,7 +575,8 @@ def make_donut_chart(name, x, y, w, h, cat_entity, cat_col, val_entity, val_meas
 
 def make_scatter_chart(name, x, y, w, h, x_entity, x_measure, y_entity, y_measure, det_entity, det_col, size_entity, size_measure, title, tab_order=2000):
     """
-    ScatterChart in PBIR requires X and Y to be Measures for reliable, schema-compliant rendering.
+    ScatterChart in PBIR requires X and Y to be Measures, and categorical grouping under 'Category'
+    so that each product renders as an individual scatter point.
     """
     query_state = {
         "X": {
@@ -571,7 +605,7 @@ def make_scatter_chart(name, x, y, w, h, x_entity, x_measure, y_entity, y_measur
                 }
             ]
         },
-        "Details": {
+        "Category": {
             "projections": [
                 {
                     "field": {
@@ -626,7 +660,10 @@ def make_scatter_chart(name, x, y, w, h, x_entity, x_measure, y_entity, y_measur
 
 
 def make_table(name, x, y, w, h, items, title, tab_order=3000):
-    # items: list of (entity, prop, is_measure)
+    """
+    Standard flat table (tableEx) uses 'Values' in queryState to hold both Column and Measure projections.
+    Using 'Rows' in tableEx causes Power BI to render blank/empty rows.
+    """
     projections = []
     for entity, prop, is_measure in items:
         field = {
@@ -648,7 +685,7 @@ def make_table(name, x, y, w, h, items, title, tab_order=3000):
             "visualType": "tableEx",
             "query": {
                 "queryState": {
-                    "Rows": {
+                    "Values": {
                         "projections": projections
                     }
                 }
@@ -734,6 +771,9 @@ def make_matrix(name, x, y, w, h, row_entity, row_col, col_entity, col_col, val_
 
 
 def make_slicer(name, x, y, w, h, entity, col, title, tab_order=500):
+    """
+    Slicer visual with horizontal tile layout for clean interactive segment filtering.
+    """
     return {
         "$schema": SCHEMA_VISUAL,
         "name": name,
@@ -756,6 +796,15 @@ def make_slicer(name, x, y, w, h, entity, col, title, tab_order=500):
                         ]
                     }
                 }
+            },
+            "objects": {
+                "general": [
+                    {
+                        "properties": {
+                            "orientation": {"expr": {"Literal": {"Value": "'Horizontal'"}}}
+                        }
+                    }
+                ]
             },
             "visualContainerObjects": {
                 "title": [
@@ -800,17 +849,19 @@ def save_page_and_visuals(page_id, display_name, visuals):
 def build_pages():
     pages_meta = []
 
+    # =========================================================================
     # PAGE 1: Executive Market Overview
-    p1_id = "fca36af890b0b0475ec0"  # Reuse existing default page id
+    # =========================================================================
+    p1_id = "fca36af890b0b0475ec0"
     p1_visuals = [
-        make_textbox("tb_header_01", 40, 20, 1840, 60, "Tiki Kitchen Appliances - Executive Market Overview"),
+        make_textbox("tb_header_01", 40, 20, 1840, 60, "🛒 TIKI MARKET PLATFORM  |  Executive Market Overview (Kitchen Appliances)"),
         make_card("card_rev_01", 40, 100, 340, 120, "fact_product_snapshot", "Total Estimated Revenue", "Doanh thu ước tính (Revenue)", 1000),
         make_card("card_vol_01", 415, 100, 340, 120, "fact_product_snapshot", "Total Volume Sold", "Sản lượng đã bán (Units)", 1100),
         make_card("card_sku_01", 790, 100, 340, 120, "fact_product_snapshot", "Total Active SKUs", "Số SKU hoạt động (SKUs)", 1200),
         make_card("card_rat_01", 1165, 100, 340, 120, "fact_product_snapshot", "Average Rating", "Điểm đánh giá TB (Rating)", 1300),
         make_card("card_cr5_01", 1540, 100, 340, 120, "fact_product_snapshot", "CR5 Index %", "Chỉ số tập trung CR5 (%)", 1400),
         make_bar_chart("bar_subcat_01", 40, 240, 920, 420, "dim_subcategory", "subcategory_name", "fact_product_snapshot", "Total Estimated Revenue", "Doanh thu theo Ngành hàng phụ (Subcategory)", 2000),
-        make_treemap("tree_brand_01", 990, 240, 890, 420, "dim_brand", "brand_name", "fact_product_snapshot", "Total Estimated Revenue", "Thị phần Doanh thu theo Thương hiệu (Brand)", 2100),
+        make_treemap("tree_brand_01", 990, 240, 890, 420, "dim_brand", "brand_name", "fact_product_snapshot", "Total Estimated Revenue", "Thị phần Doanh thu theo Thương hiệu (Brand Treemap)", 2100),
         make_table("table_alert_01", 40, 680, 1840, 370, [
             ("alerts", "triggered_at", False),
             ("alerts", "product_name", False),
@@ -825,10 +876,12 @@ def build_pages():
     save_page_and_visuals(p1_id, "Executive Market Overview", p1_visuals)
     pages_meta.append(p1_id)
 
-    # PAGE 2: Pricing & Discount Saturation
+    # =========================================================================
+    # PAGE 2: Pricing & Discount Saturation (BQ1)
+    # =========================================================================
     p2_id = "e102a3b4c5d6e7f8a9b0"
     p2_visuals = [
-        make_textbox("tb_header_02", 40, 20, 1840, 60, "Phân tích Điểm bão hòa Giảm giá (Pricing & Discount Saturation - BQ1)"),
+        make_textbox("tb_header_02", 40, 20, 1840, 60, "🎯 BQ1: Pricing & Discount Saturation  |  Phân tích Điểm bão hòa Giảm giá"),
         make_slicer("slicer_segment_02", 40, 90, 1840, 80, "fact_product_snapshot", "price_segment", "Bộ lọc Phân khúc Giá (Price Segment Slicer)", 500),
         make_column_chart("col_disc_qty_02", 40, 190, 890, 420, "agg_discount_saturation", "discount_bracket", "agg_discount_saturation", "Avg Units Sold", "Sản lượng bán TB theo Khung giảm giá (Units Sold by Discount Bracket)", 2000),
         make_column_chart("col_disc_sku_02", 960, 190, 920, 420, "agg_discount_saturation", "discount_bracket", "agg_discount_saturation", "Discount SKU Count", "Phân bổ số lượng SKU theo Khung giảm giá (SKU Distribution)", 2100),
@@ -837,10 +890,12 @@ def build_pages():
     save_page_and_visuals(p2_id, "Pricing & Discount Saturation", p2_visuals)
     pages_meta.append(p2_id)
 
-    # PAGE 3: Brand & Seller Market Share
+    # =========================================================================
+    # PAGE 3: Brand & Seller Market Share (BQ2)
+    # =========================================================================
     p3_id = "b2c3d4e5f6a7b8c9d0e1"
     p3_visuals = [
-        make_textbox("tb_header_03", 40, 20, 1840, 60, "Cơ cấu Thị phần Thương hiệu & Nhà bán hàng (Brand & Seller Market Share - BQ2)"),
+        make_textbox("tb_header_03", 40, 20, 1840, 60, "🏢 BQ2: Brand & Seller Market Share  |  Cơ cấu Thị phần Thương hiệu & Nhà bán hàng"),
         make_card("card_cr5_03", 40, 95, 430, 120, "fact_product_snapshot", "CR5 Index %", "Chỉ số tập trung Top 5 Brand (CR5)", 1000),
         make_card("card_rev_03", 510, 95, 430, 120, "fact_product_snapshot", "Total Estimated Revenue", "Tổng Quy mô Doanh thu", 1100),
         make_card("card_vol_03", 980, 95, 430, 120, "fact_product_snapshot", "Total Volume Sold", "Tổng Sản lượng Tiêu thụ", 1200),
@@ -858,10 +913,12 @@ def build_pages():
     save_page_and_visuals(p3_id, "Brand & Seller Market Share", p3_visuals)
     pages_meta.append(p3_id)
 
-    # PAGE 4: Customer Perception & Quality Risk Watchlist
+    # =========================================================================
+    # PAGE 4: Customer Perception & Quality Risk Watchlist (BQ3)
+    # =========================================================================
     p4_id = "c3d4e5f6a7b8c9d0e1f2"
     p4_visuals = [
-        make_textbox("tb_header_04", 40, 20, 1840, 60, "Theo dõi Rủi ro Chất lượng & Trải nghiệm Khách hàng (Quality Risk Watchlist - BQ3)"),
+        make_textbox("tb_header_04", 40, 20, 1840, 60, "⚠️ BQ3: Quality Risk Watchlist & Perception  |  Theo dõi Rủi ro Chất lượng & Trải nghiệm Khách hàng"),
         make_card("card_rev_cnt_04", 40, 95, 430, 120, "fact_reviews", "Total Reviews", "Tổng lượt đánh giá (Reviews)", 1000),
         make_card("card_pos_ratio_04", 510, 95, 430, 120, "fact_reviews", "Positive Review Ratio %", "Tỷ lệ đánh giá Tích cực (4-5★)", 1100),
         make_card("card_neg_ratio_04", 980, 95, 430, 120, "fact_reviews", "Negative Review Ratio %", "Tỷ lệ đánh giá Tiêu cực (1-2★)", 1200),
@@ -872,18 +929,20 @@ def build_pages():
             ("dim_product", "name", False),
             ("dim_brand", "brand_name", False),
             ("fact_product_snapshot", "price", False),
-            ("fact_product_snapshot", "rating_average", False),
-            ("fact_product_snapshot", "review_count", False),
-            ("fact_product_snapshot", "quantity_sold", False)
+            ("fact_product_snapshot", "Average Rating", True),
+            ("fact_product_snapshot", "Average Review Count", True),
+            ("fact_product_snapshot", "Total Volume Sold", True)
         ], "Danh sách Sản phẩm Cần Giám sát Chất lượng (Quality Risk Watchlist)", 3000)
     ]
     save_page_and_visuals(p4_id, "Customer Perception & Risk Watchlist", p4_visuals)
     pages_meta.append(p4_id)
 
-    # PAGE 5: Assortment & Merchandising Gap Analysis
+    # =========================================================================
+    # PAGE 5: Assortment & Merchandising Gap Analysis (BQ4)
+    # =========================================================================
     p5_id = "d4e5f6a7b8c9d0e1f2a3"
     p5_visuals = [
-        make_textbox("tb_header_05", 40, 20, 1840, 60, "Phân tích Khoảng trống Ngành hàng (Assortment & Merchandising Gap Analysis - BQ4)"),
+        make_textbox("tb_header_05", 40, 20, 1840, 60, "📦 BQ4: Assortment Gap Analysis  |  Phân tích Khoảng trống Ngành hàng & Cơ hội Bổ sung SKU"),
         make_card("card_sku_05", 40, 95, 580, 120, "fact_product_snapshot", "Total Active SKUs", "Tổng số SKU phân tích", 1000),
         make_card("card_rev_05", 670, 95, 580, 120, "fact_product_snapshot", "Total Estimated Revenue", "Tổng Doanh thu Ngành hàng", 1100),
         make_card("card_vol_05", 1300, 95, 580, 120, "fact_product_snapshot", "Total Volume Sold", "Tổng Sản lượng Tiêu thụ", 1200),
@@ -900,18 +959,21 @@ def build_pages():
     save_page_and_visuals(p5_id, "Assortment Gap Analysis", p5_visuals)
     pages_meta.append(p5_id)
 
-    # PAGE 6: Marketing Priority Matrix
+    # =========================================================================
+    # PAGE 6: Marketing Priority Matrix (BQ5)
+    # =========================================================================
     p6_id = "e5f6a7b8c9d0e1f2a3b4"
     p6_visuals = [
-        make_textbox("tb_header_06", 40, 20, 1840, 60, "Ma trận Ưu tiên Tiếp thị & Phân bổ Ngân sách (Marketing Priority Matrix)"),
+        make_textbox("tb_header_06", 40, 20, 1840, 60, "⭐ Marketing Priority Matrix  |  Ma trận Ưu tiên Tiếp thị & Phân bổ Ngân sách Quảng cáo"),
         make_card("card_rev_06", 40, 95, 580, 120, "fact_product_snapshot", "Total Estimated Revenue", "Tổng Ngân sách / Quy mô Doanh thu", 1000),
         make_card("card_rat_06", 670, 95, 580, 120, "fact_product_snapshot", "Average Rating", "Ngưỡng Rating Chuẩn (Benchmark)", 1100),
         make_card("card_vol_06", 1300, 95, 580, 120, "fact_product_snapshot", "Total Volume Sold", "Tổng Sản lượng Tiêu chuẩn", 1200),
         make_scatter_chart("scatter_quad_06", 40, 235, 1100, 460, "fact_product_snapshot", "Average Rating", "fact_product_snapshot", "Total Volume Sold", "dim_product", "name", "fact_product_snapshot", "Total Estimated Revenue", "Ma trận 4 Góc phần tư (Quadrant Matrix: Rating vs Sales Volume)", 2000),
         make_table("table_stars_06", 1180, 235, 700, 460, [
             ("dim_product", "name", False),
-            ("fact_product_snapshot", "quantity_sold", False),
-            ("fact_product_snapshot", "rating_average", False),
+            ("dim_brand", "brand_name", False),
+            ("fact_product_snapshot", "Total Volume Sold", True),
+            ("fact_product_snapshot", "Average Rating", True),
             ("fact_product_snapshot", "Total Estimated Revenue", True)
         ], "Top Sản phẩm Ngôi sao cần Đẩy mạnh Chiến dịch (Stars & Opportunities)", 2100),
         make_table("table_all_strat_06", 40, 715, 1840, 340, [
@@ -919,18 +981,20 @@ def build_pages():
             ("dim_brand", "brand_name", False),
             ("dim_subcategory", "subcategory_name", False),
             ("fact_product_snapshot", "price", False),
-            ("fact_product_snapshot", "quantity_sold", False),
-            ("fact_product_snapshot", "rating_average", False),
+            ("fact_product_snapshot", "Total Volume Sold", True),
+            ("fact_product_snapshot", "Average Rating", True),
             ("fact_product_snapshot", "Total Estimated Revenue", True)
         ], "Chiến lược Định vị Sản phẩm Toàn diện (Promote / Nurture / Delist / Audit)", 3000)
     ]
     save_page_and_visuals(p6_id, "Marketing Priority Matrix", p6_visuals)
     pages_meta.append(p6_id)
 
-    # PAGE 7: Voice of Customer (VoC) Root-Causes
+    # =========================================================================
+    # PAGE 7: Voice of Customer (VoC) Root-Causes (BQ6)
+    # =========================================================================
     p7_id = "f6a7b8c9d0e1f2a3b4c5"
     p7_visuals = [
-        make_textbox("tb_header_07", 40, 20, 1840, 60, "Phân tích Tiếng nói Khách hàng & Nguyên nhân Khiếu nại (Voice of Customer VoC - BQ6)"),
+        make_textbox("tb_header_07", 40, 20, 1840, 60, "🗣️ BQ6: Voice of Customer (VoC)  |  Phân tích Tiếng nói Khách hàng & Nguyên nhân Khiếu nại"),
         make_card("card_aftersales_07", 40, 95, 430, 120, "fact_reviews", "AfterSales Complaint %", "Khiếu nại Hậu cần & Đổi trả (%)", 1000),
         make_card("card_defect_07", 510, 95, 430, 120, "fact_reviews", "Hardware Defect %", "Lỗi Phần cứng & Kỹ thuật (%)", 1100),
         make_card("card_tot_rev_07", 980, 95, 430, 120, "fact_reviews", "Total Reviews", "Tổng số Review NLP Phân tích", 1200),
@@ -970,4 +1034,3 @@ if __name__ == "__main__":
     print("\n=== Building PBIP Report Pages & Visuals ===")
     build_pages()
     print("\nPBIP Dashboard Generation Completed Successfully!")
-

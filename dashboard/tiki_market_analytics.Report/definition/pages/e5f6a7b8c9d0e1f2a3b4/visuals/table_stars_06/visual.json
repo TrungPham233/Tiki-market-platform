@@ -13,7 +13,7 @@
     "visualType": "tableEx",
     "query": {
       "queryState": {
-        "Rows": {
+        "Values": {
           "projections": [
             {
               "field": {
@@ -33,26 +33,39 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "fact_product_snapshot"
+                      "Entity": "dim_brand"
                     }
                   },
-                  "Property": "quantity_sold"
+                  "Property": "brand_name"
                 }
               },
-              "queryRef": "fact_product_snapshot.quantity_sold"
+              "queryRef": "dim_brand.brand_name"
             },
             {
               "field": {
-                "Column": {
+                "Measure": {
                   "Expression": {
                     "SourceRef": {
                       "Entity": "fact_product_snapshot"
                     }
                   },
-                  "Property": "rating_average"
+                  "Property": "Total Volume Sold"
                 }
               },
-              "queryRef": "fact_product_snapshot.rating_average"
+              "queryRef": "fact_product_snapshot.Total Volume Sold"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_product_snapshot"
+                    }
+                  },
+                  "Property": "Average Rating"
+                }
+              },
+              "queryRef": "fact_product_snapshot.Average Rating"
             },
             {
               "field": {

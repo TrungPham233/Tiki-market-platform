@@ -13,7 +13,7 @@
     "visualType": "tableEx",
     "query": {
       "queryState": {
-        "Rows": {
+        "Values": {
           "projections": [
             {
               "field": {
@@ -69,29 +69,29 @@
             },
             {
               "field": {
-                "Column": {
+                "Measure": {
                   "Expression": {
                     "SourceRef": {
                       "Entity": "fact_product_snapshot"
                     }
                   },
-                  "Property": "quantity_sold"
+                  "Property": "Total Volume Sold"
                 }
               },
-              "queryRef": "fact_product_snapshot.quantity_sold"
+              "queryRef": "fact_product_snapshot.Total Volume Sold"
             },
             {
               "field": {
-                "Column": {
+                "Measure": {
                   "Expression": {
                     "SourceRef": {
                       "Entity": "fact_product_snapshot"
                     }
                   },
-                  "Property": "rating_average"
+                  "Property": "Average Rating"
                 }
               },
-              "queryRef": "fact_product_snapshot.rating_average"
+              "queryRef": "fact_product_snapshot.Average Rating"
             },
             {
               "field": {

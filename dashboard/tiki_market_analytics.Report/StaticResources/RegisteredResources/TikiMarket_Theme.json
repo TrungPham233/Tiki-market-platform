@@ -1,0 +1,142 @@
+{
+  "name": "TikiMarket Analytics Modern Theme",
+  "dataColors": [
+    "#1A94FF",
+    "#00BFA5",
+    "#F59E0B",
+    "#EF4444",
+    "#6366F1",
+    "#8B5CF6",
+    "#06B6D4",
+    "#64748B"
+  ],
+  "background": "#FFFFFF",
+  "foreground": "#0F172A",
+  "tableAccent": "#1A94FF",
+  "good": "#00BFA5",
+  "neutral": "#F59E0B",
+  "bad": "#EF4444",
+  "maximum": "#1A94FF",
+  "center": "#F59E0B",
+  "minimum": "#EF4444",
+  "textClasses": {
+    "callout": {
+      "fontSize": 26,
+      "fontFace": "Segoe UI Semibold",
+      "color": "#0F172A"
+    },
+    "title": {
+      "fontSize": 12,
+      "fontFace": "Segoe UI Semibold",
+      "color": "#1E293B"
+    },
+    "header": {
+      "fontSize": 11,
+      "fontFace": "Segoe UI Semibold",
+      "color": "#1E293B"
+    },
+    "label": {
+      "fontSize": 10,
+      "fontFace": "Segoe UI",
+      "color": "#64748B"
+    }
+  },
+  "visualStyles": {
+    "*": {
+      "*": {
+        "background": [
+          {
+            "show": true,
+            "color": { "solid": { "color": "#FFFFFF" } },
+            "transparency": 0
+          }
+        ],
+        "border": [
+          {
+            "show": true,
+            "color": { "solid": { "color": "#E2E8F0" } },
+            "radius": 8
+          }
+        ],
+        "dropShadow": [
+          {
+            "show": true,
+            "color": { "solid": { "color": "#0000000D" } },
+            "position": "Outer",
+            "preset": "BottomRight"
+          }
+        ]
+      }
+    },
+    "textbox": {
+      "*": {
+        "background": [{ "show": false }],
+        "border": [{ "show": false }],
+        "dropShadow": [{ "show": false }]
+      }
+    },
+    "page": {
+      "*": {
+        "background": [
+          {
+            "color": { "solid": { "color": "#F4F7FA" } },
+            "transparency": 0
+          }
+        ],
+        "outspace": [
+          {
+            "color": { "solid": { "color": "#F4F7FA" } },
+            "transparency": 0
+          }
+        ]
+      }
+    },
+    "card": {
+      "*": {
+        "categoryLabels": [
+          {
+            "show": false
+          }
+        ],
+        "labels": [
+          {
+            "fontSize": 26,
+            "fontFamily": "Segoe UI Semibold",
+            "color": { "solid": { "color": "#0F172A" } }
+          }
+        ]
+      }
+    },
+    "tableEx": {
+      "*": {
+        "columnHeaders": [
+          {
+            "fontFamily": "Segoe UI Semibold",
+            "fontSize": 10,
+            "fontColor": { "solid": { "color": "#1E293B" } },
+            "backColor": { "solid": { "color": "#F8FAFC" } },
+            "autoSizeColumnWidth": true
+          }
+        ],
+        "values": [
+          {
+            "fontFamily": "Segoe UI",
+            "fontSize": 10,
+            "fontColorPrimary": { "solid": { "color": "#334155" } },
+            "backColorPrimary": { "solid": { "color": "#FFFFFF" } },
+            "backColorSecondary": { "solid": { "color": "#F8FAFC" } }
+          }
+        ],
+        "total": [
+          {
+            "fontFamily": "Segoe UI Semibold",
+            "fontSize": 10,
+            "fontColor": { "solid": { "color": "#0F172A" } },
+            "backColor": { "solid": { "color": "#F1F5F9" } }
+          }
+        ]
+      }
+    }
+  }
+}
+

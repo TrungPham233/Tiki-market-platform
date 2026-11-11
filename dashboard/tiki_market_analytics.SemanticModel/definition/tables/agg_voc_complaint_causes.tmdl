@@ -1,11 +1,10 @@
 table agg_voc_complaint_causes
 	lineageTag: a098afdc-64e8-4aae-9dd3-89fb077c6810
-
 	measure 'Total Complaint Count' = SUM(agg_voc_complaint_causes[complaint_count])
 		formatString: #,##0
 		lineageTag: a4a8fb12-32a1-4354-a951-8743c4a20009
 
-	measure 'Complaint % Share' = AVERAGE(agg_voc_complaint_causes[percentage_of_negative])
+	measure 'Complaint % Share' = DIVIDE(AVERAGE(agg_voc_complaint_causes[percentage_of_negative]), 100, 0)
 		formatString: 0.0%
 		lineageTag: a4a8fb12-32a1-4354-a951-8743c4a20010
 

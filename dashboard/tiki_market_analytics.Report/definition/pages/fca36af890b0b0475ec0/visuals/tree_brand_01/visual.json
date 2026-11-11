@@ -13,7 +13,7 @@
     "visualType": "treemap",
     "query": {
       "queryState": {
-        "Category": {
+        "Group": {
           "projections": [
             {
               "field": {
@@ -63,7 +63,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Thị phần Doanh thu theo Thương hiệu (Brand)'"
+                  "Value": "'Thị phần Doanh thu theo Thương hiệu (Brand Treemap)'"
                 }
               }
             }

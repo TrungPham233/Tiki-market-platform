@@ -85,3 +85,39 @@ def test_relationships_star_schema():
     assert "rel_fact_reviews_to_dim_product" in content
     assert "rel_fact_reviews_to_dim_date" in content
 
+
+def test_visual_data_roles_and_theme():
+    report_dir = Path("E:/baitap/Project1/tiki-market-platform/dashboard/tiki_market_analytics.Report")
+    theme_file = report_dir / "StaticResources" / "RegisteredResources" / "TikiMarket_Theme.json"
+    assert theme_file.exists(), "TikiMarket_Theme.json must exist"
+
+    report_json = json.loads((report_dir / "definition" / "report.json").read_text(encoding="utf-8"))
+    assert "customTheme" in report_json["themeCollection"]
+    assert report_json["themeCollection"]["customTheme"]["name"] == "TikiMarket_Theme"
+
+    # Verify visual roles across all pages
+    pages_dir = report_dir / "definition" / "pages"
+    for page_folder in pages_dir.glob("*/visuals/*"):
+        vis_json = page_folder / "visual.json"
+        if not vis_json.exists():
+            continue
+        vdata = json.loads(vis_json.read_text(encoding="utf-8"))
+        vtype = vdata["visual"]["visualType"]
+        qs = vdata["visual"].get("query", {}).get("queryState", {})
+
+        if vtype == "treemap":
+            assert "Group" in qs, f"Treemap {page_folder.name} must use 'Group' data role"
+            assert "Values" in qs
+        elif vtype == "scatterChart":
+            assert "Category" in qs, f"Scatter {page_folder.name} must use 'Category' data role"
+            assert "X" in qs and "Y" in qs
+        elif vtype == "tableEx":
+            assert "Values" in qs, f"Table {page_folder.name} must use 'Values' data role, not 'Rows'"
+        elif vtype == "card":
+            assert "Values" in qs
+            # Ensure categoryLabels is hidden
+            cat_labels = vdata["visual"].get("objects", {}).get("categoryLabels", [{}])[0]
+            show_val = cat_labels.get("properties", {}).get("show", {}).get("expr", {}).get("Literal", {}).get("Value")
+            assert show_val == "false", f"Card {page_folder.name} must have categoryLabels show=false"
+
+
