@@ -29,6 +29,7 @@ metastore_db/
 derby.log
 *.parquet
 *.delta
+*.pdf
 
 # Logs & Airflow
 logs/
