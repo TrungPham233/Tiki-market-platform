@@ -10,7 +10,7 @@ from pathlib import Path
 import json
 import re
 
-BASE_DIR = Path("E:/baitap/Project1/tiki-market-platform/dashboard")
+BASE_DIR = Path(__file__).resolve().parent
 SEMANTIC_DIR = BASE_DIR / "tiki_market_analytics.SemanticModel" / "definition"
 REPORT_DIR = BASE_DIR / "tiki_market_analytics.Report" / "definition"
 

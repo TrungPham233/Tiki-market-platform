@@ -1,16 +1,20 @@
 from pathlib import Path
 import json
 
+ROOT_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = ROOT_DIR / "dashboard"
+REPORT_DIR = BASE_DIR / "tiki_market_analytics.Report"
+SEMANTIC_DIR = BASE_DIR / "tiki_market_analytics.SemanticModel"
+
 
 def test_pbip_files_exist():
-    base = Path("E:/baitap/Project1/tiki-market-platform/dashboard")
-    assert (base / "tiki_market_analytics.pbip").exists()
-    assert (base / "tiki_market_analytics.Report").exists()
-    assert (base / "tiki_market_analytics.SemanticModel").exists()
+    assert (BASE_DIR / "tiki_market_analytics.pbip").exists()
+    assert REPORT_DIR.exists()
+    assert SEMANTIC_DIR.exists()
 
 
 def test_pages_metadata_integrity():
-    pages_json_path = Path("E:/baitap/Project1/tiki-market-platform/dashboard/tiki_market_analytics.Report/definition/pages/pages.json")
+    pages_json_path = REPORT_DIR / "definition" / "pages" / "pages.json"
     assert pages_json_path.exists()
 
     with open(pages_json_path, "r", encoding="utf-8") as f:
@@ -22,7 +26,7 @@ def test_pages_metadata_integrity():
 
 
 def test_all_pages_and_visuals():
-    pages_dir = Path("E:/baitap/Project1/tiki-market-platform/dashboard/tiki_market_analytics.Report/definition/pages")
+    pages_dir = REPORT_DIR / "definition" / "pages"
     with open(pages_dir / "pages.json", "r", encoding="utf-8") as f:
         meta = json.load(f)
 
@@ -60,7 +64,7 @@ def test_all_pages_and_visuals():
 
 
 def test_semantic_model_tmdl():
-    tables_dir = Path("E:/baitap/Project1/tiki-market-platform/dashboard/tiki_market_analytics.SemanticModel/definition/tables")
+    tables_dir = SEMANTIC_DIR / "definition" / "tables"
     fact_tmdl = (tables_dir / "fact_product_snapshot.tmdl").read_text(encoding="utf-8")
     assert "measure 'Total Estimated Revenue'" in fact_tmdl
     assert "measure 'Total Volume Sold'" in fact_tmdl
@@ -75,7 +79,7 @@ def test_semantic_model_tmdl():
 
 
 def test_relationships_star_schema():
-    rel_path = Path("E:/baitap/Project1/tiki-market-platform/dashboard/tiki_market_analytics.SemanticModel/definition/relationships.tmdl")
+    rel_path = SEMANTIC_DIR / "definition" / "relationships.tmdl"
     content = rel_path.read_text(encoding="utf-8")
     assert "rel_fact_product_to_dim_product" in content
     assert "rel_fact_product_to_dim_brand" in content
@@ -87,16 +91,15 @@ def test_relationships_star_schema():
 
 
 def test_visual_data_roles_and_theme():
-    report_dir = Path("E:/baitap/Project1/tiki-market-platform/dashboard/tiki_market_analytics.Report")
-    theme_file = report_dir / "StaticResources" / "RegisteredResources" / "TikiMarket_Theme.json"
+    theme_file = REPORT_DIR / "StaticResources" / "RegisteredResources" / "TikiMarket_Theme.json"
     assert theme_file.exists(), "TikiMarket_Theme.json must exist"
 
-    report_json = json.loads((report_dir / "definition" / "report.json").read_text(encoding="utf-8"))
+    report_json = json.loads((REPORT_DIR / "definition" / "report.json").read_text(encoding="utf-8"))
     assert "customTheme" in report_json["themeCollection"]
     assert report_json["themeCollection"]["customTheme"]["name"] == "TikiMarket_Theme"
 
     # Verify visual roles across all pages
-    pages_dir = report_dir / "definition" / "pages"
+    pages_dir = REPORT_DIR / "definition" / "pages"
     for page_folder in pages_dir.glob("*/visuals/*"):
         vis_json = page_folder / "visual.json"
         if not vis_json.exists():
@@ -115,9 +118,6 @@ def test_visual_data_roles_and_theme():
             assert "Values" in qs, f"Table {page_folder.name} must use 'Values' data role, not 'Rows'"
         elif vtype == "card":
             assert "Values" in qs
-            # Ensure categoryLabels is hidden
             cat_labels = vdata["visual"].get("objects", {}).get("categoryLabels", [{}])[0]
             show_val = cat_labels.get("properties", {}).get("show", {}).get("expr", {}).get("Literal", {}).get("Value")
             assert show_val == "false", f"Card {page_folder.name} must have categoryLabels show=false"
-
-

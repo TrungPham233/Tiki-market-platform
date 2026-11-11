@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-pages_dir = Path('E:/baitap/Project1/tiki-market-platform/dashboard/tiki_market_analytics.Report/definition/pages')
+pages_dir = Path(__file__).resolve().parent / 'tiki_market_analytics.Report' / 'definition' / 'pages'
 
 with open(pages_dir / 'pages.json', encoding='utf-8') as f:
     meta = json.load(f)
