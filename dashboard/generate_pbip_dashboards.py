@@ -54,6 +54,10 @@ def update_fact_product_snapshot():
 \t\t\t```
 \t\tformatString: 0.0%
 \t\tlineageTag: 71a8fb12-32a1-4354-a951-8743c4a20006
+
+\tmeasure 'Average Review Count' = AVERAGE(fact_product_snapshot[review_count])
+\t\tformatString: #,##0
+\t\tlineageTag: 71a8fb12-32a1-4354-a951-8743c4a20007
 """
     # Insert right after the table declaration and lineageTag
     if "measure 'Total Estimated Revenue'" not in content:
@@ -536,72 +540,34 @@ def make_donut_chart(name, x, y, w, h, cat_entity, cat_col, val_entity, val_meas
     }
 
 
-def make_scatter_chart(name, x, y, w, h, x_entity, x_prop, y_entity, y_prop, det_entity, det_col, size_entity, size_measure, title, is_x_measure=False, is_y_measure=False, x_agg_fn=1, y_agg_fn=1, tab_order=2000):
+def make_scatter_chart(name, x, y, w, h, x_entity, x_measure, y_entity, y_measure, det_entity, det_col, size_entity, size_measure, title, tab_order=2000):
     """
-    ScatterChart requires X and Y to be Measure or Aggregation — NOT raw Column.
-    is_x_measure / is_y_measure: True => Measure reference, False => Aggregation wrapper.
-    x_agg_fn / y_agg_fn: Aggregation function (0=Sum, 1=Average, 2=DistinctCount, 3=Min, 4=Max).
+    ScatterChart in PBIR requires X and Y to be Measures for reliable, schema-compliant rendering.
     """
-    if is_x_measure:
-        x_field = {
-            "Measure": {
-                "Expression": {"SourceRef": {"Entity": x_entity}},
-                "Property": x_prop
-            }
-        }
-        x_query_ref = f"{x_entity}.{x_prop}"
-    else:
-        x_field = {
-            "Aggregation": {
-                "Expression": {
-                    "Column": {
-                        "Expression": {"SourceRef": {"Entity": x_entity}},
-                        "Property": x_prop
-                    }
-                },
-                "Function": x_agg_fn
-            }
-        }
-        agg_names = {0: "Sum", 1: "Average", 2: "CountDistinct", 3: "Min", 4: "Max"}
-        x_query_ref = f"{x_entity}.{x_prop} ({agg_names.get(x_agg_fn, 'Average')})"
-
-    if is_y_measure:
-        y_field = {
-            "Measure": {
-                "Expression": {"SourceRef": {"Entity": y_entity}},
-                "Property": y_prop
-            }
-        }
-        y_query_ref = f"{y_entity}.{y_prop}"
-    else:
-        y_field = {
-            "Aggregation": {
-                "Expression": {
-                    "Column": {
-                        "Expression": {"SourceRef": {"Entity": y_entity}},
-                        "Property": y_prop
-                    }
-                },
-                "Function": y_agg_fn
-            }
-        }
-        agg_names = {0: "Sum", 1: "Average", 2: "CountDistinct", 3: "Min", 4: "Max"}
-        y_query_ref = f"{y_entity}.{y_prop} ({agg_names.get(y_agg_fn, 'Average')})"
-
     query_state = {
         "X": {
             "projections": [
                 {
-                    "field": x_field,
-                    "queryRef": x_query_ref
+                    "field": {
+                        "Measure": {
+                            "Expression": {"SourceRef": {"Entity": x_entity}},
+                            "Property": x_measure
+                        }
+                    },
+                    "queryRef": f"{x_entity}.{x_measure}"
                 }
             ]
         },
         "Y": {
             "projections": [
                 {
-                    "field": y_field,
-                    "queryRef": y_query_ref
+                    "field": {
+                        "Measure": {
+                            "Expression": {"SourceRef": {"Entity": y_entity}},
+                            "Property": y_measure
+                        }
+                    },
+                    "queryRef": f"{y_entity}.{y_measure}"
                 }
             ]
         },
@@ -866,7 +832,7 @@ def build_pages():
         make_slicer("slicer_segment_02", 40, 90, 1840, 80, "fact_product_snapshot", "price_segment", "Bộ lọc Phân khúc Giá (Price Segment Slicer)", 500),
         make_column_chart("col_disc_qty_02", 40, 190, 890, 420, "agg_discount_saturation", "discount_bracket", "agg_discount_saturation", "Avg Units Sold", "Sản lượng bán TB theo Khung giảm giá (Units Sold by Discount Bracket)", 2000),
         make_column_chart("col_disc_sku_02", 960, 190, 920, 420, "agg_discount_saturation", "discount_bracket", "agg_discount_saturation", "Discount SKU Count", "Phân bổ số lượng SKU theo Khung giảm giá (SKU Distribution)", 2100),
-        make_scatter_chart("scatter_disc_02", 40, 630, 1840, 420, "fact_product_snapshot", "discount_rate_calc", "fact_product_snapshot", "quantity_sold", "dim_product", "name", "fact_product_snapshot", "Total Estimated Revenue", "Tương quan Tỷ lệ giảm giá vs Sản lượng bán thực tế (Discount % vs Volume)", False, False, 2200)
+        make_scatter_chart("scatter_disc_02", 40, 630, 1840, 420, "fact_product_snapshot", "Average Discount Rate %", "fact_product_snapshot", "Total Volume Sold", "dim_product", "name", "fact_product_snapshot", "Total Estimated Revenue", "Tương quan Tỷ lệ giảm giá vs Sản lượng bán thực tế (Discount % vs Volume)", 2200)
     ]
     save_page_and_visuals(p2_id, "Pricing & Discount Saturation", p2_visuals)
     pages_meta.append(p2_id)
@@ -900,7 +866,7 @@ def build_pages():
         make_card("card_pos_ratio_04", 510, 95, 430, 120, "fact_reviews", "Positive Review Ratio %", "Tỷ lệ đánh giá Tích cực (4-5★)", 1100),
         make_card("card_neg_ratio_04", 980, 95, 430, 120, "fact_reviews", "Negative Review Ratio %", "Tỷ lệ đánh giá Tiêu cực (1-2★)", 1200),
         make_card("card_avg_rat_04", 1450, 95, 430, 120, "fact_product_snapshot", "Average Rating", "Điểm Rating TB toàn ngành", 1300),
-        make_scatter_chart("scatter_qual_04", 40, 235, 960, 460, "fact_product_snapshot", "review_count", "fact_product_snapshot", "rating_average", "dim_product", "name", None, None, "Bản đồ Nhận thức: Số lượt đánh giá vs Điểm Rating (Perception Map)", False, False, 2000),
+        make_scatter_chart("scatter_qual_04", 40, 235, 960, 460, "fact_product_snapshot", "Average Review Count", "fact_product_snapshot", "Average Rating", "dim_product", "name", None, None, "Bản đồ Nhận thức: Số lượt đánh giá vs Điểm Rating (Perception Map)", 2000),
         make_donut_chart("donut_sent_04", 1040, 235, 840, 460, "fact_reviews", "sentiment_label", "fact_reviews", "Total Reviews", "Cơ cấu Phân loại Cảm xúc Khách hàng (Sentiment Breakdown)", 2100),
         make_table("table_watch_04", 40, 715, 1840, 340, [
             ("dim_product", "name", False),
@@ -941,7 +907,7 @@ def build_pages():
         make_card("card_rev_06", 40, 95, 580, 120, "fact_product_snapshot", "Total Estimated Revenue", "Tổng Ngân sách / Quy mô Doanh thu", 1000),
         make_card("card_rat_06", 670, 95, 580, 120, "fact_product_snapshot", "Average Rating", "Ngưỡng Rating Chuẩn (Benchmark)", 1100),
         make_card("card_vol_06", 1300, 95, 580, 120, "fact_product_snapshot", "Total Volume Sold", "Tổng Sản lượng Tiêu chuẩn", 1200),
-        make_scatter_chart("scatter_quad_06", 40, 235, 1100, 460, "fact_product_snapshot", "rating_average", "fact_product_snapshot", "quantity_sold", "dim_product", "name", "fact_product_snapshot", "Total Estimated Revenue", "Ma trận 4 Góc phần tư (Quadrant Matrix: Rating vs Sales Volume)", False, False, 2000),
+        make_scatter_chart("scatter_quad_06", 40, 235, 1100, 460, "fact_product_snapshot", "Average Rating", "fact_product_snapshot", "Total Volume Sold", "dim_product", "name", "fact_product_snapshot", "Total Estimated Revenue", "Ma trận 4 Góc phần tư (Quadrant Matrix: Rating vs Sales Volume)", 2000),
         make_table("table_stars_06", 1180, 235, 700, 460, [
             ("dim_product", "name", False),
             ("fact_product_snapshot", "quantity_sold", False),

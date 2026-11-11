@@ -24,3 +24,4 @@ for page_id in meta['pageOrder']:
                 roles = list(qs.keys())
                 print('  ' + vd.name + ' | ' + vtype + ' | y=' + str(pos['y']) + ' h=' + str(pos['height']) + ' | roles=' + str(roles))
     print()
+

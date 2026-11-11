@@ -17,21 +17,16 @@
           "projections": [
             {
               "field": {
-                "Aggregation": {
+                "Measure": {
                   "Expression": {
-                    "Column": {
-                      "Expression": {
-                        "SourceRef": {
-                          "Entity": "fact_product_snapshot"
-                        }
-                      },
-                      "Property": "rating_average"
+                    "SourceRef": {
+                      "Entity": "fact_product_snapshot"
                     }
                   },
-                  "Function": 2000
+                  "Property": "Average Rating"
                 }
               },
-              "queryRef": "fact_product_snapshot.rating_average (Average)"
+              "queryRef": "fact_product_snapshot.Average Rating"
             }
           ]
         },
@@ -39,21 +34,16 @@
           "projections": [
             {
               "field": {
-                "Aggregation": {
+                "Measure": {
                   "Expression": {
-                    "Column": {
-                      "Expression": {
-                        "SourceRef": {
-                          "Entity": "fact_product_snapshot"
-                        }
-                      },
-                      "Property": "quantity_sold"
+                    "SourceRef": {
+                      "Entity": "fact_product_snapshot"
                     }
                   },
-                  "Function": 1
+                  "Property": "Total Volume Sold"
                 }
               },
-              "queryRef": "fact_product_snapshot.quantity_sold (Average)"
+              "queryRef": "fact_product_snapshot.Total Volume Sold"
             }
           ]
         },
