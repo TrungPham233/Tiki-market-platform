@@ -84,3 +84,4 @@ def test_relationships_star_schema():
     assert "rel_fact_product_to_dim_date" in content
     assert "rel_fact_reviews_to_dim_product" in content
     assert "rel_fact_reviews_to_dim_date" in content
+

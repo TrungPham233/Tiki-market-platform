@@ -207,7 +207,6 @@ relationship a714cf22-620d-4e7e-ad60-128e7655557e
 \tfromColumn: dim_date.full_date
 \ttoColumn: LocalDateTable_ea42d29c-00d0-4b1e-801d-8eb4174a121f.Date
 
-// Star Schema Core Fact Relationships (All ACTIVE)
 relationship rel_fact_product_to_dim_product
 \tfromColumn: fact_product_snapshot.product_id
 \ttoColumn: dim_product.product_id
@@ -228,7 +227,6 @@ relationship rel_fact_product_to_dim_date
 \tfromColumn: fact_product_snapshot.date_key
 \ttoColumn: dim_date.date_key
 
-// Fact Reviews to Product and Date Dimensions (ACTIVE)
 relationship rel_fact_reviews_to_dim_product
 \tfromColumn: fact_reviews.product_id
 \ttoColumn: dim_product.product_id
@@ -237,7 +235,6 @@ relationship rel_fact_reviews_to_dim_date
 \tfromColumn: fact_reviews.date_key
 \ttoColumn: dim_date.date_key
 
-// Inactive secondary paths to avoid circular / snowflake loops
 relationship rel_dim_product_to_dim_brand_inactive
 \tisActive: false
 \tfromColumn: dim_product.brand_id
@@ -969,3 +966,4 @@ if __name__ == "__main__":
     print("\n=== Building PBIP Report Pages & Visuals ===")
     build_pages()
     print("\nPBIP Dashboard Generation Completed Successfully!")
+
