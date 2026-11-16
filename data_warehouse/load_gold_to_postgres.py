@@ -18,7 +18,7 @@ from sqlalchemy import create_engine, text
 # Add parent directory to sys.path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
-from spark.config import GOLD_DIR
+from spark.config import SERVING_DIR
 
 logging.basicConfig(
     level=logging.INFO,
@@ -104,7 +104,8 @@ def execute_analytics_views(engine, db_type: str) -> None:
                 SUM(quantity_sold) AS total_units_sold,
                 SUM(price * quantity_sold) AS total_estimated_revenue,
                 ROUND(AVG(rating_average), 2) AS category_avg_rating
-            FROM dwh_fact_product_snapshot;
+            FROM dwh_fact_product_snapshot
+            WHERE date_key = (SELECT MAX(date_key) FROM dwh_fact_product_snapshot);
             """,
             """
             CREATE VIEW IF NOT EXISTS analytics_vw_brand_market_share AS
@@ -116,6 +117,7 @@ def execute_analytics_views(engine, db_type: str) -> None:
                 ROUND(AVG(f.rating_average), 2) AS avg_rating
             FROM dwh_fact_product_snapshot f
             LEFT JOIN dwh_dim_brand b ON f.brand_id = b.brand_id
+            WHERE f.date_key = (SELECT MAX(date_key) FROM dwh_fact_product_snapshot)
             GROUP BY b.brand_name
             ORDER BY estimated_revenue DESC;
             """,
@@ -127,6 +129,7 @@ def execute_analytics_views(engine, db_type: str) -> None:
                 ROUND(AVG(f.quantity_sold), 1) AS avg_units_sold,
                 ROUND(AVG(f.rating_average), 2) AS avg_rating
             FROM dwh_fact_product_snapshot f
+            WHERE f.date_key = (SELECT MAX(date_key) FROM dwh_fact_product_snapshot)
             GROUP BY f.price_segment;
             """,
         ]
@@ -136,8 +139,11 @@ def execute_analytics_views(engine, db_type: str) -> None:
         logger.info("✅ SQLite analytics views created successfully.")
 
 
-def run_dwh_sync(gold_dir: Path = GOLD_DIR) -> Dict[str, int]:
-    """Execute complete sync from Gold Lakehouse to Data Warehouse."""
+def run_dwh_sync(gold_dir: Path = SERVING_DIR) -> Dict[str, int]:
+    """
+    Execute complete sync from the Lakehouse serving layer to the Data Warehouse.
+    gold_dir holds the Parquet snapshots exported from the Gold Delta tables.
+    """
     engine, db_type = get_db_engine()
 
     # Pre-create schemas in postgres
@@ -160,7 +166,7 @@ def run_dwh_sync(gold_dir: Path = GOLD_DIR) -> Dict[str, int]:
     tables_loaded["fact_reviews"] = load_parquet_table(engine, gold_dir / "fact_reviews.parquet", "fact_reviews", db_type)
 
     # Alerts
-    alerts_file = gold_dir / "alerts" / "price_alerts.parquet"
+    alerts_file = gold_dir / "price_alerts.parquet"
     if alerts_file.exists():
         tables_loaded["alerts"] = load_parquet_table(engine, alerts_file, "alerts", db_type)
 
@@ -178,7 +184,7 @@ def run_dwh_sync(gold_dir: Path = GOLD_DIR) -> Dict[str, int]:
 
 def main():
     parser = argparse.ArgumentParser(description="Load Gold Lakehouse into Data Warehouse")
-    parser.add_argument("--gold-dir", default=str(GOLD_DIR))
+    parser.add_argument("--gold-dir", default=str(SERVING_DIR))
     args = parser.parse_args()
 
     run_dwh_sync(Path(args.gold_dir))

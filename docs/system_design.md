@@ -50,6 +50,24 @@
 | **LocalExecutor for Airflow** | CeleryExecutor / DockerOperator | Lightweight for local single-node development, zero Redis dependency required. |
 | **MinIO** | AWS S3 directly | 100% free, runs offline, zero AWS billing risk, S3-API compatible. |
 | **PostgreSQL for Serving** | Snowflake / ClickHouse | Lightweight, native integration with Power BI via DirectQuery / Import mode. |
+| **MERGE-based writes everywhere** | Append / overwrite | Bronze (insert-only on payload hash), Silver (upsert, newer crawl wins), SCD2 dimension, facts and stream sink are all MERGEs, so any task can be re-run safely. |
+| **No Python UDFs** | pandas UDFs | Transforms are native Spark SQL expressions (JVM-side, no Python serialization). Only underthesea tokenization runs on the driver, over distinct review texts. |
+| **List price in SCD2, selling price in facts** | Price as SCD2 attribute | Selling price changes almost daily; tracking it in the dimension would explode `dim_product`. Daily selling price history lives in `fact_product_snapshot` (grain: product x day). |
+
+---
+
+## 4b. Implementation Status (what runs today)
+
+| Component | Status |
+|:---|:---|
+| Crawler (recursive price bisection) | Runs against Tiki's public APIs; last run: 2,000 kitchen-appliance products + reviews |
+| Bronze / Silver / Gold | PySpark 3.5 + Delta Lake 3.2, `local[*]` mode, local filesystem |
+| Quality gate | 12 checks on Silver Delta tables, blocks Gold on failure |
+| SCD Type 2 | Delta MERGE on `dim_product`; covered by `tests/test_spark_delta.py` |
+| Price-alert stream | Spark Structured Streaming. File source benchmarked (`spark/streaming/measure_latency.py`); Kafka source implemented (`--source kafka`, needs the broker from docker-compose) |
+| Price-change events | Simulated from real crawled products (Tiki has no public price-change feed) |
+| MinIO / S3A | Config present (`USE_MINIO=true`) but the `hadoop-aws` jar is not wired in; default storage is the local filesystem |
+| Airflow in Docker | DAG definitions are current; the stock `apache/airflow` image has no Java/PySpark, so tasks need a custom image. `dags/local_dag_runner.py` runs the same tasks locally |
 
 ---
 

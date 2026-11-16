@@ -1,14 +1,19 @@
 """
-Automated Data Quality & Validation Gate Module.
+Automated Data Quality & Validation Gate (Circuit Breaker).
 
-Performs critical integrity checks on data before promotion to Gold layer:
-1. Completeness: Table row counts >= min_rows.
-2. Uniqueness: Primary keys must have zero duplicates.
-3. Non-nullability: Critical columns must have zero NULLs.
-4. Range validity: Prices > 0, Ratings within [1.0, 5.0].
-5. Anomaly Threshold: Price/discount anomalies must not exceed threshold (default 10%).
+Runs 12 integrity checks on the Silver layer before anything is promoted to Gold:
+1. Completeness: tables are not empty.
+2. Uniqueness: primary keys have zero duplicates.
+3. Non-nullability: critical columns have zero NULLs.
+4. Range validity: ratings inside their allowed range.
+5. Anomaly threshold: share of price anomalies stays under a tolerated limit (warning only).
 
-Raises DataQualityError if any critical assertion fails (Fail-Fast).
+Raises DataQualityError if any critical assertion fails (fail-fast), which stops
+the Airflow DAG / pipeline runner before the Gold tasks.
+
+The Silver tables are Delta tables; `run_silver_quality_gate_delta` reads only
+the columns the checks need. The check functions themselves work on pandas
+DataFrames so they are cheap to unit test.
 """
 import json
 import logging
@@ -19,6 +24,9 @@ from typing import Any, Dict, List, Optional
 import pandas as pd
 
 logger = logging.getLogger("data_quality")
+
+PRODUCT_COLUMNS = ["product_id", "name", "price", "rating_average", "is_price_anomaly"]
+REVIEW_COLUMNS = ["review_id", "product_id", "rating"]
 
 
 class DataQualityError(Exception):
@@ -115,20 +123,16 @@ def check_anomaly_threshold(
     )
 
 
-def run_silver_quality_gate(
-    silver_products_file: Path,
-    silver_reviews_file: Path,
+def evaluate_silver_quality(
+    df_p: Optional[pd.DataFrame],
+    df_r: Optional[pd.DataFrame],
     report_output_file: Optional[Path] = None,
+    source_label: str = "",
 ) -> Dict[str, Any]:
-    """
-    Run comprehensive suite of quality checks on Silver datasets before Gold promotion.
-    Raises DataQualityError if any critical assertion fails.
-    """
+    """Run the 12 checks. A None DataFrame means the Silver table is missing."""
     results: List[QualityCheckResult] = []
 
-    # 1. Audit Silver Products
-    if silver_products_file.exists():
-        df_p = pd.read_parquet(silver_products_file)
+    if df_p is not None:
         results.append(check_not_empty(df_p, "silver_products", min_rows=1))
         results.append(check_not_null(df_p, "product_id", "silver_products"))
         results.append(check_not_null(df_p, "name", "silver_products"))
@@ -137,26 +141,24 @@ def run_silver_quality_gate(
         results.append(check_numeric_range(df_p, "rating_average", 0.0, 5.0, "silver_products"))
         results.append(check_anomaly_threshold(df_p, "is_price_anomaly", 5.0, "silver_products"))
     else:
-        results.append(QualityCheckResult("FILE_EXISTS", "silver_products", "FAILED", f"Missing file: {silver_products_file}"))
+        results.append(QualityCheckResult("TABLE_EXISTS", "silver_products", "FAILED", "Silver products table missing"))
 
-    # 2. Audit Silver Reviews
-    if silver_reviews_file.exists():
-        df_r = pd.read_parquet(silver_reviews_file)
+    if df_r is not None:
         results.append(check_not_empty(df_r, "silver_reviews", min_rows=1))
         results.append(check_not_null(df_r, "review_id", "silver_reviews"))
         results.append(check_not_null(df_r, "product_id", "silver_reviews"))
         results.append(check_unique(df_r, "review_id", "silver_reviews"))
         results.append(check_numeric_range(df_r, "rating", 1, 5, "silver_reviews"))
     else:
-        results.append(QualityCheckResult("FILE_EXISTS", "silver_reviews", "FAILED", f"Missing file: {silver_reviews_file}"))
+        results.append(QualityCheckResult("TABLE_EXISTS", "silver_reviews", "FAILED", "Silver reviews table missing"))
 
-    # Aggregate status
     failed_checks = [r for r in results if r.status == "FAILED"]
     warn_checks = [r for r in results if r.status == "WARNING"]
     passed_checks = [r for r in results if r.status == "PASSED"]
 
     summary = {
         "evaluated_at": datetime.now(timezone.utc).isoformat(),
+        "source": source_label,
         "total_checks": len(results),
         "passed": len(passed_checks),
         "warnings": len(warn_checks),
@@ -168,7 +170,7 @@ def run_silver_quality_gate(
     if report_output_file:
         report_output_file.parent.mkdir(parents=True, exist_ok=True)
         with open(report_output_file, "w", encoding="utf-8") as f:
-            json.dump(summary, f, indent=2)
+            json.dump(summary, f, indent=2, ensure_ascii=False)
 
     logger.info("Quality Gate Evaluation: %d Passed, %d Warnings, %d Failed",
                 len(passed_checks), len(warn_checks), len(failed_checks))
@@ -178,3 +180,36 @@ def run_silver_quality_gate(
         raise DataQualityError(f"Data Quality Gate Failed: {fail_msgs}")
 
     return summary
+
+
+def run_silver_quality_gate(
+    silver_products_file: Path,
+    silver_reviews_file: Path,
+    report_output_file: Optional[Path] = None,
+) -> Dict[str, Any]:
+    """Quality gate over Parquet extracts (used by unit tests and ad-hoc checks)."""
+    df_p = pd.read_parquet(silver_products_file) if silver_products_file.exists() else None
+    df_r = pd.read_parquet(silver_reviews_file) if silver_reviews_file.exists() else None
+    return evaluate_silver_quality(df_p, df_r, report_output_file, source_label="parquet")
+
+
+def run_silver_quality_gate_delta(
+    spark,
+    silver_path: str,
+    report_output_file: Optional[Path] = None,
+) -> Dict[str, Any]:
+    """Quality gate over the Silver Delta tables (used by the pipeline and the DAG)."""
+    from delta.tables import DeltaTable
+
+    def load(table: str, cols: List[str]) -> Optional[pd.DataFrame]:
+        path = f"{silver_path}/{table}"
+        if not DeltaTable.isDeltaTable(spark, path):
+            return None
+        return spark.read.format("delta").load(path).select(*cols).toPandas()
+
+    return evaluate_silver_quality(
+        load("products", PRODUCT_COLUMNS),
+        load("reviews", REVIEW_COLUMNS),
+        report_output_file,
+        source_label="delta",
+    )

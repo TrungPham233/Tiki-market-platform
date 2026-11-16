@@ -1,23 +1,28 @@
 """
-Gold Layer: Fact Tables Generation Job.
+Gold Layer: Star Schema Facts (PySpark + Delta Lake).
 
-Constructs Star Schema Fact Tables:
-1. fact_product_snapshot: Daily metric snapshot of product sales, pricing, and ratings.
-2. fact_reviews: Customer feedback facts linked to products and calendar dates.
+1. fact_product_snapshot - grain: one row per product per crawl day.
+   Holds the selling price, discount, units sold and rating on that day, so the
+   daily price history of every product is kept here. Linked to the dim_product
+   version that was valid on that day. Partitioned by date_key; MERGE on
+   (product_id, date_key) makes re-runs on the same day idempotent.
+
+2. fact_reviews - grain: one row per review. Point-in-time join: each review is
+   linked to the product version valid when the review was written (falls back
+   to the first known version for reviews older than our first crawl).
 """
 import argparse
 import logging
 import sys
-import uuid
-from datetime import datetime, timezone
 from pathlib import Path
 
-import pandas as pd
+from pyspark.sql import SparkSession, Window
+from pyspark.sql import functions as F
 
-# Add parent directory to sys.path
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
 
-from spark.config import GOLD_DIR, SILVER_DIR
+from spark.config import GOLD_PATH, SILVER_PATH, table_path
+from spark.delta_utils import upsert
 
 logging.basicConfig(
     level=logging.INFO,
@@ -28,72 +33,89 @@ logger = logging.getLogger("gold_facts")
 
 
 def process_facts(
-    silver_products_file: Path = SILVER_DIR / "products" / "clean_products.parquet",
-    silver_reviews_file: Path = SILVER_DIR / "reviews" / "clean_reviews.parquet",
-    gold_dir: Path = GOLD_DIR,
-) -> None:
-    """Build Fact tables from Silver cleaned datasets."""
-    gold_dir.mkdir(parents=True, exist_ok=True)
-    today_key = int(datetime.now(timezone.utc).strftime("%Y%m%d"))
+    spark: SparkSession,
+    silver_path: str = SILVER_PATH,
+    gold_path: str = GOLD_PATH,
+) -> dict:
+    products = spark.read.format("delta").load(table_path(silver_path, "products"))
+    reviews = spark.read.format("delta").load(table_path(silver_path, "reviews"))
+    dim_product = spark.read.format("delta").load(table_path(gold_path, "dim_product"))
 
-    # 1. Build fact_product_snapshot
-    if silver_products_file.exists():
-        df_prod = pd.read_parquet(silver_products_file)
-        df_prod["snapshot_id"] = [f"snap_{uuid.uuid4().hex[:10]}" for _ in range(len(df_prod))]
-        df_prod["date_key"] = today_key
-        df_prod["product_sk"] = df_prod["product_id"].astype(str) + "_v1"
+    versions = dim_product.select("product_id", "product_sk", "version", "valid_from", "valid_to")
 
-        fact_prod = df_prod[[
-            "snapshot_id", "date_key", "product_sk", "product_id",
+    # ---- fact_product_snapshot -------------------------------------------------
+    snap = (
+        products
+        .withColumn("snapshot_ts", F.coalesce("crawled_at", F.current_timestamp()))
+        .withColumn("date_key", F.date_format("snapshot_ts", "yyyyMMdd").cast("int"))
+        .alias("p")
+        .join(
+            versions.alias("v"),
+            (F.col("p.product_id") == F.col("v.product_id"))
+            & (F.col("p.snapshot_ts") >= F.col("v.valid_from"))
+            & (F.col("p.snapshot_ts") < F.col("v.valid_to")),
+            "left",
+        )
+        .select(
+            F.concat_ws("_", F.col("p.product_id"), F.col("date_key")).alias("snapshot_id"),
+            "date_key",
+            F.col("v.product_sk"),
+            F.col("p.product_id"),
             "brand_id", "seller_id", "subcategory_id",
             "price", "original_price", "discount_rate_calc",
             "quantity_sold", "rating_average", "review_count",
-            "price_segment", "is_discount_discrepancy"
-        ]].copy()
+            "price_segment", "is_discount_discrepancy",
+        )
+    )
+    snap_path = table_path(gold_path, "fact_product_snapshot")
+    upsert(spark, snap, snap_path, keys=["product_id", "date_key"], partition_by=["date_key"])
 
-        out_prod = gold_dir / "fact_product_snapshot.parquet"
-        fact_prod.to_parquet(out_prod, index=False, engine="pyarrow")
-        logger.info("✅ Created fact_product_snapshot with %d rows -> %s", len(fact_prod), out_prod)
+    # ---- fact_reviews (point-in-time join to dim_product) ----------------------
+    first_version = versions.withColumn(
+        "_rn", F.row_number().over(Window.partitionBy("product_id").orderBy("version"))
+    ).filter("_rn = 1").select("product_id", F.col("product_sk").alias("first_sk"))
 
-    # 2. Build fact_reviews
-    if silver_reviews_file.exists():
-        df_rev = pd.read_parquet(silver_reviews_file)
-        df_rev["product_sk"] = df_rev["product_id"].astype(str) + "_v1"
+    r = reviews.alias("r")
+    pit = (
+        r.join(
+            versions.alias("v"),
+            (F.col("r.product_id") == F.col("v.product_id"))
+            & (F.col("r.created_at") >= F.col("v.valid_from"))
+            & (F.col("r.created_at") < F.col("v.valid_to")),
+            "left",
+        )
+        .join(first_version.alias("f"), F.col("r.product_id") == F.col("f.product_id"), "left")
+        .select(
+            F.col("r.review_id"),
+            F.coalesce(F.col("v.product_sk"), F.col("f.first_sk")).alias("product_sk"),
+            F.col("r.product_id"),
+            F.date_format(F.coalesce("r.created_at", "r.crawled_at"), "yyyyMMdd").cast("int").alias("date_key"),
+            "r.customer_hash", "r.rating", "r.sentiment_label",
+            "r.is_after_sales_complaint", "r.is_defect_complaint",
+            "r.thank_count", "r.tokenized_text",
+        )
+    )
+    rev_path = table_path(gold_path, "fact_reviews")
+    upsert(spark, pit, rev_path, keys=["review_id"])
 
-        # Extract date_key from created_at
-        def parse_date_key(dt_str: str) -> int:
-            if not dt_str or pd.isna(dt_str):
-                return today_key
-            try:
-                clean_dt = str(dt_str)[:10].replace("-", "")
-                return int(clean_dt)
-            except Exception:
-                return today_key
-
-        df_rev["date_key"] = df_rev["created_at"].apply(parse_date_key)
-
-        fact_rev = df_rev[[
-            "review_id", "product_sk", "product_id", "date_key",
-            "customer_hash", "rating", "sentiment_label",
-            "is_after_sales_complaint", "is_defect_complaint",
-            "thank_count", "tokenized_text"
-        ]].copy()
-
-        out_rev = gold_dir / "fact_reviews.parquet"
-        fact_rev.to_parquet(out_rev, index=False, engine="pyarrow")
-        logger.info("✅ Created fact_reviews with %d rows -> %s", len(fact_rev), out_rev)
+    stats = {
+        "fact_product_snapshot": spark.read.format("delta").load(snap_path).count(),
+        "fact_reviews": spark.read.format("delta").load(rev_path).count(),
+    }
+    logger.info("[GOLD] facts: %s", stats)
+    return stats
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Generate Gold Fact Tables")
-    parser.add_argument("--products", default=str(SILVER_DIR / "products" / "clean_products.parquet"))
-    parser.add_argument("--reviews", default=str(SILVER_DIR / "reviews" / "clean_reviews.parquet"))
-    parser.add_argument("--gold-dir", default=str(GOLD_DIR))
-    args = parser.parse_args()
+    from spark.spark_session import get_spark_session
 
-    process_facts(Path(args.products), Path(args.reviews), Path(args.gold_dir))
+    argparse.ArgumentParser(description="Build Gold facts").parse_args()
+    spark = get_spark_session("gold_facts")
+    try:
+        process_facts(spark)
+    finally:
+        spark.stop()
 
 
 if __name__ == "__main__":
     main()
-

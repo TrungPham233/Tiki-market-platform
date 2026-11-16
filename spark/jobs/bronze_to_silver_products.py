@@ -1,27 +1,31 @@
 """
-Silver Layer: Products Cleaning, Enrichment, and Anomaly Detection Job.
+Silver Layer: Products Cleaning, Enrichment and Anomaly Flags (PySpark + Delta).
 
-Processes Bronze products:
-1. Normalizes brand & seller names (resolves aliases like Lock&Lock / LocknLock).
-2. Computes discount_rate_calc and detects discount discrepancies.
-3. Flags data anomalies (is_price_anomaly, is_rating_invalid).
-4. Deduplicates by product_id keeping the latest record.
-5. Saves clean dataset to Silver layer.
+Reads raw JSON payloads from bronze/products and:
+1. Parses them with an explicit schema (schema-on-read).
+2. Normalizes brand names (alias map) and text fields.
+3. Recomputes the discount rate and flags discrepancies with Tiki's displayed rate.
+4. Flags anomalies (is_price_anomaly, is_rating_invalid).
+5. Keeps the latest record per product_id (window over crawled_at).
+6. Upserts into silver/products with a Delta MERGE (only newer crawls overwrite).
+
+All transformations are native Spark SQL expressions (no Python UDFs), so they run
+inside the JVM and scale with the cluster.
 """
 import argparse
-import glob
 import logging
 import sys
-from datetime import datetime, timezone
+from itertools import chain
 from pathlib import Path
 
-import numpy as np
-import pandas as pd
+from pyspark.sql import Column, DataFrame, SparkSession, Window
+from pyspark.sql import functions as F
+from pyspark.sql import types as T
 
-# Add parent directory to sys.path
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
 
-from spark.config import BRONZE_DIR, SILVER_DIR
+from spark.config import BRONZE_PATH, SILVER_PATH, table_path
+from spark.delta_utils import last_operation_metrics, upsert
 
 logging.basicConfig(
     level=logging.INFO,
@@ -30,7 +34,33 @@ logging.basicConfig(
 )
 logger = logging.getLogger("silver_products")
 
-# Brand normalization dictionary
+PRODUCT_SCHEMA = T.StructType([
+    T.StructField("product_id", T.LongType()),
+    T.StructField("name", T.StringType()),
+    T.StructField("url_key", T.StringType()),
+    T.StructField("price", T.DoubleType()),
+    T.StructField("original_price", T.DoubleType()),
+    T.StructField("discount", T.DoubleType()),
+    T.StructField("discount_rate", T.DoubleType()),
+    T.StructField("rating_average", T.DoubleType()),
+    T.StructField("review_count", T.LongType()),
+    T.StructField("quantity_sold", T.LongType()),
+    T.StructField("brand_id", T.StringType()),
+    T.StructField("brand_name", T.StringType()),
+    T.StructField("seller_id", T.StringType()),
+    T.StructField("seller_name", T.StringType()),
+    T.StructField("is_official_seller", T.BooleanType()),
+    T.StructField("subcategory_id", T.StringType()),
+    T.StructField("subcategory_name", T.StringType()),
+    T.StructField("origin", T.StringType()),
+    T.StructField("warranty_type", T.StringType()),
+    T.StructField("power_wattage", T.StringType()),
+    T.StructField("capacity", T.StringType()),
+    T.StructField("is_active", T.BooleanType()),
+    T.StructField("crawled_at", T.StringType()),
+])
+
+# Brand normalization dictionary (lower-case alias -> canonical name)
 BRAND_ALIASES = {
     "locknlock": "Lock&Lock",
     "lock&lock": "Lock&Lock",
@@ -46,97 +76,126 @@ BRAND_ALIASES = {
     "bluestone": "Bluestone",
 }
 
+PRICE_SEGMENTS = [
+    (200_000, "Dưới 200k"),
+    (500_000, "200k - 500k"),
+    (1_500_000, "500k - 1.5M"),
+    (3_000_000, "1.5M - 3M"),
+]
 
-def normalize_brand(name: str) -> str:
-    """Standardize brand name variations."""
-    if not name or pd.isna(name) or name.strip() == "":
+
+def normalize_brand(name) -> str:
+    """Pure-Python reference of the brand rule (used in unit tests and docs)."""
+    if name is None or str(name).strip() == "" or str(name) == "nan":
         return "Unknown"
-    cleaned = name.strip()
+    cleaned = str(name).strip()
     return BRAND_ALIASES.get(cleaned.lower(), cleaned)
 
 
-def process_bronze_to_silver_products(
-    bronze_dir: Path = BRONZE_DIR / "products",
-    output_dir: Path = SILVER_DIR / "products",
-) -> int:
-    """Execute product cleaning and transformation."""
-    parquet_files = list(bronze_dir.glob("**/*.parquet"))
-    if not parquet_files:
-        logger.error("No Bronze products parquet files found in %s", bronze_dir)
-        return 0
-
-    logger.info("Reading %d Bronze parquet files...", len(parquet_files))
-    dfs = [pd.read_parquet(f) for f in parquet_files]
-    df = pd.concat(dfs, ignore_index=True)
-    initial_count = len(df)
-    logger.info("Loaded %d raw records from Bronze", initial_count)
-
-    # 1. Type casting
-    df["product_id"] = pd.to_numeric(df["product_id"], errors="coerce").fillna(0).astype(int)
-    df["price"] = pd.to_numeric(df["price"], errors="coerce").fillna(0)
-    df["original_price"] = pd.to_numeric(df["original_price"], errors="coerce").fillna(df["price"])
-    df["discount_rate"] = pd.to_numeric(df["discount_rate"], errors="coerce").fillna(0)
-    df["rating_average"] = pd.to_numeric(df["rating_average"], errors="coerce").fillna(0.0)
-    df["review_count"] = pd.to_numeric(df["review_count"], errors="coerce").fillna(0).astype(int)
-    df["quantity_sold"] = pd.to_numeric(df["quantity_sold"], errors="coerce").fillna(0).astype(int)
-
-    # 2. String cleaning & normalization
-    df["name"] = df["name"].fillna("").astype(str).str.strip()
-    df["brand_name"] = df["brand_name"].apply(normalize_brand)
-    df["seller_name"] = df["seller_name"].fillna("Unknown").astype(str).str.strip()
-    df["subcategory_name"] = df["subcategory_name"].fillna("Chưa phân loại").astype(str).str.strip()
-
-    # 3. Calculated Columns
-    # Calculated discount rate
-    calc_rate = np.where(
-        df["original_price"] > 0,
-        ((df["original_price"] - df["price"]) / df["original_price"]) * 100,
-        0.0,
+def normalize_brand_col(col: Column) -> Column:
+    """Spark expression equivalent of normalize_brand()."""
+    alias_map = F.create_map(*[F.lit(x) for x in chain(*BRAND_ALIASES.items())])
+    trimmed = F.trim(col)
+    return (
+        F.when(col.isNull() | (trimmed == ""), F.lit("Unknown"))
+        .otherwise(F.coalesce(alias_map[F.lower(trimmed)], trimmed))
     )
-    df["discount_rate_calc"] = np.round(np.maximum(0.0, calc_rate), 2)
 
-    # 4. Data Quality & Anomaly Flags
-    df["is_price_anomaly"] = (df["price"] <= 0) | (df["original_price"] < df["price"])
-    df["is_rating_invalid"] = (df["rating_average"] < 0) | (df["rating_average"] > 5.0)
-    # Detect Tiki display discount rate bug (> 5% discrepancy between reported and calculated rate)
-    df["is_discount_discrepancy"] = (
-        (df["discount_rate"] - df["discount_rate_calc"]).abs() > 5.0
-    ) & (~df["is_price_anomaly"])
 
-    # 5. Price Segments for Merchandising Analysis
-    bins = [0, 200000, 500000, 1500000, 3000000, float("inf")]
-    labels = ["Dưới 200k", "200k - 500k", "500k - 1.5M", "1.5M - 3M", "Trên 3M"]
-    df["price_segment"] = pd.cut(df["price"], bins=bins, labels=labels, right=False)
+def price_segment_col(price: Column) -> Column:
+    expr = None
+    for upper, label in PRICE_SEGMENTS:
+        expr = F.when(price < upper, label) if expr is None else expr.when(price < upper, label)
+    return expr.otherwise("Trên 3M")
 
-    # 6. Deduplication by product_id keeping latest crawled_at
-    if "crawled_at" in df.columns:
-        df = df.sort_values("crawled_at", ascending=False)
-    df = df.drop_duplicates(subset=["product_id"], keep="first")
 
-    # 7. Audit metadata
-    df["_silver_processed_at"] = datetime.now(timezone.utc).isoformat()
+def transform_products(bronze_df: DataFrame) -> DataFrame:
+    """Bronze raw payloads -> one clean, enriched row per product_id."""
+    parsed = (
+        bronze_df
+        .withColumn("p", F.from_json("raw_json", PRODUCT_SCHEMA))
+        .select("p.*", "_ingested_at", "_batch_id")
+        .filter(F.col("product_id").isNotNull())
+    )
 
-    # Save to Silver layer
-    output_dir.mkdir(parents=True, exist_ok=True)
-    out_file = output_dir / "clean_products.parquet"
-    df.to_parquet(out_file, index=False, engine="pyarrow")
+    clean = (
+        parsed
+        .withColumn("price", F.coalesce("price", F.lit(0.0)))
+        .withColumn("original_price", F.coalesce("original_price", "price"))
+        .withColumn("discount_rate", F.coalesce("discount_rate", F.lit(0.0)))
+        .withColumn("rating_average", F.coalesce("rating_average", F.lit(0.0)))
+        .withColumn("review_count", F.coalesce("review_count", F.lit(0)).cast("long"))
+        .withColumn("quantity_sold", F.coalesce("quantity_sold", F.lit(0)).cast("long"))
+        .withColumn("name", F.trim(F.coalesce("name", F.lit(""))))
+        .withColumn("brand_name", normalize_brand_col(F.col("brand_name")))
+        .withColumn("seller_name", F.trim(F.coalesce("seller_name", F.lit("Unknown"))))
+        .withColumn("subcategory_name", F.trim(F.coalesce("subcategory_name", F.lit("Chưa phân loại"))))
+        .withColumn("crawled_at", F.to_timestamp("crawled_at"))
+    )
 
-    anomalies = int(df["is_discount_discrepancy"].sum())
-    logger.info("✅ [SILVER] Cleaned %d products (from %d Bronze records). Discrepancies: %d",
-                len(df), initial_count, anomalies)
-    logger.info("Saved to: %s", out_file)
-    return len(df)
+    calc_rate = F.when(
+        F.col("original_price") > 0,
+        (F.col("original_price") - F.col("price")) / F.col("original_price") * 100,
+    ).otherwise(F.lit(0.0))
+
+    enriched = (
+        clean
+        .withColumn("discount_rate_calc", F.round(F.greatest(F.lit(0.0), calc_rate), 2))
+        .withColumn("is_price_anomaly",
+                    (F.col("price") <= 0) | (F.col("original_price") < F.col("price")))
+        .withColumn("is_rating_invalid",
+                    (F.col("rating_average") < 0) | (F.col("rating_average") > 5.0))
+        # Tiki display bug: reported discount differs from the computed one by > 5 points
+        .withColumn("is_discount_discrepancy",
+                    (F.abs(F.col("discount_rate") - F.col("discount_rate_calc")) > 5.0)
+                    & ~F.col("is_price_anomaly"))
+        .withColumn("price_segment", price_segment_col(F.col("price")))
+    )
+
+    latest = Window.partitionBy("product_id").orderBy(
+        F.col("crawled_at").desc_nulls_last(), F.col("_ingested_at").desc()
+    )
+    return (
+        enriched
+        .withColumn("_rn", F.row_number().over(latest))
+        .filter("_rn = 1")
+        .drop("_rn", "_ingested_at")
+        .withColumn("_silver_processed_at", F.current_timestamp())
+    )
+
+
+def process_bronze_to_silver_products(
+    spark: SparkSession,
+    bronze_path: str = BRONZE_PATH,
+    silver_path: str = SILVER_PATH,
+) -> int:
+    source = table_path(bronze_path, "products")
+    target = table_path(silver_path, "products")
+
+    bronze_df = spark.read.format("delta").load(source)
+    silver_df = transform_products(bronze_df)
+
+    upsert(
+        spark, silver_df, target, keys=["product_id"],
+        # only a newer crawl overwrites; re-running the same data rewrites nothing
+        update_condition="s.crawled_at > t.crawled_at OR t.crawled_at IS NULL",
+    )
+    total = spark.read.format("delta").load(target).count()
+    logger.info("[SILVER] products: %d rows in table | last commit: %s",
+                total, last_operation_metrics(spark, target))
+    return total
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Process Bronze products to Silver")
-    parser.add_argument("--bronze", default=str(BRONZE_DIR / "products"))
-    parser.add_argument("--silver", default=str(SILVER_DIR / "products"))
-    args = parser.parse_args()
+    from spark.spark_session import get_spark_session
 
-    process_bronze_to_silver_products(Path(args.bronze), Path(args.silver))
+    argparse.ArgumentParser(description="Bronze products -> Silver").parse_args()
+    spark = get_spark_session("silver_products")
+    try:
+        process_bronze_to_silver_products(spark)
+    finally:
+        spark.stop()
 
 
 if __name__ == "__main__":
     main()
-

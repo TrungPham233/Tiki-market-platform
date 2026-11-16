@@ -13,11 +13,25 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python 3.12
+      # Spark 3.5 officially supports Python <= 3.11
+      - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.11"
           cache: "pip"
+
+      # Java is required by PySpark / Delta Lake integration tests
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Cache Ivy (Delta Lake jars)
+        uses: actions/cache@v4
+        with:
+          path: ~/.ivy2
+          key: ivy-delta-3.2-spark-3.5
 
       - name: Install dependencies
         run: |
@@ -25,11 +39,10 @@ jobs:
           pip install -r requirements.txt
           pip install pytest pytest-mock
 
-      - name: Run Code Formatting Check (Black)
+      - name: Code Formatting Check (Black, advisory)
         run: |
           black --check --diff data_collection/ kafka_pipeline/ spark/ dags/ data_warehouse/ tests/ || true
 
-      - name: Run Full Test Suite (Pytest)
+      - name: Run Full Test Suite (unit + Spark/Delta integration)
         run: |
           python -m pytest tests/ -v
-

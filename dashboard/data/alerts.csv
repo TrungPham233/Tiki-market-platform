@@ -1,7 +1,173 @@
-﻿alert_id,alert_type,product_id,product_name,brand_name,seller_name,old_price,new_price,price_drop_pct,savings_amount,triggered_at
-alt_53205b425c,FLASH_SALE_DETECTED,278141162,Ấm siêu tốc inox 304 cao cấp đảm bảo an toàn 1.8L Daewoo DWK-S1805 đế xoay 360 độ - Hàng chính hãng BH 2 năm - Hàng chính hãng,Daewoo,Tiki Trading,250000,168000,32.8,82000,2026-11-10T12:47:00.792370+00:00
-alt_bb4f3deadf,FLASH_SALE_DETECTED,127031346,Nồi Điện Đa Năng BlueStone MPB-7233 (1.2 Lít) - Hàng Chính Hãng,Bluestone,Tiki Trading,396000,262000,33.84,134000,2026-11-10T12:47:00.792370+00:00
-alt_2ec6ec7e7b,FLASH_SALE_DETECTED,278755975,Máy xay tỏi ớt mini Elmich PBE9220 - Hàng chính hãng,Elmich,Tiki Trading,332000,173000,47.89,159000,2026-11-10T12:47:00.792370+00:00
-alt_e1458c2eda,FLASH_SALE_DETECTED,278852392,Máy xay ăn dặm Bear 0.3L CH-5H02D24 - Hàng Chính Hãng,Bear,Tiki Trading,365000,208000,43.01,157000,2026-11-10T12:47:00.792370+00:00
-alt_cd43b4b6bf,FLASH_SALE_DETECTED,278099047,Máy Vắt Cam LocknLock Citrus Juicer EJJ244 40W 700ml - Xoay Ép Hai Chiều - Hàng chính hãng,LocknLock,Tiki Trading,315520,161000,48.97,154520,2026-11-10T12:47:00.792899+00:00
-alt_9717b3650e,FLASH_SALE_DETECTED,273640582,Máy sấy tóc Elmich HDE-1813 - Hàng Chính Hãng,Elmich,Tiki Trading,278000,146000,47.48,132000,2026-11-10T12:47:00.792899+00:00
+alert_id,alert_type,product_id,product_name,brand_name,seller_name,old_price,new_price,price_drop_pct,savings_amount,triggered_at
+alt_9c849095b118,FLASH_SALE_DETECTED,48267534,"Tông Đơ Cắt Tóc Cho Bé, Trẻ Em Codol 531 TẶNG Bộ Kéo Cắt Tóc, Tỉa Tóc + Lược Chuyên Dụng - Tăng Đơ Cắt Tóc Gia Đình Cho Người Lớn Và Bé Sơ Sinh Máy Chạy Êm Lưỡi Có Thể Thay",codol,Halo Buy,350000.0,240000.0,31.43,110000.0,2026-11-16 12:19:19.706081
+alt_59e7b327fe28,FLASH_SALE_DETECTED,403455,Kẹp Nướng Sandwich Tiross TS514 (750W) - Hàng Chính Hãng,Tiross,Tiross Hà Nội,559000.0,293000.0,47.58,266000.0,2026-11-16 12:19:19.706081
+alt_4bf400a903b6,FLASH_SALE_DETECTED,444670,Bàn Ủi Khô Electrolux EDI2004 - Trắng Xanh - Hàng chính hãng,Electrolux,ĐIỆN MÁY TẤN TÀI,480000.0,227000.0,52.71,253000.0,2026-11-16 12:19:19.706081
+alt_fbf4b0f53f97,FLASH_SALE_DETECTED,2365901,Nồi Cơm Nắp Gài Toshiba RC-10JFM(H)VN (1L) - Hàng chính hãng,Toshiba,AM MART,582000.0,382000.0,34.36,200000.0,2026-11-16 12:19:19.706081
+alt_9637558713e9,FLASH_SALE_DETECTED,24187029,Bộ van ga điều áp tự động ngắt ga Namilux NA-345S-VN + 1.4m dây ga + 2 cổ nhuê inox - Hàng chính hãng,NaMilux,Home Star Store,209000.0,116000.0,44.5,93000.0,2026-11-16 12:19:19.706081
+alt_8c884a383901,FLASH_SALE_DETECTED,1953341,Máy Sấy Tóc Sunhouse SHD2306 - Đen,Sunhouse,Gia Khang,359000.0,218000.0,39.28,141000.0,2026-11-16 12:19:19.706081
+alt_19e4943168af,FLASH_SALE_DETECTED,15675591,Combo 10 Tê đều nối nhanh 3 đầu dây 10 (706-Q003B) - Hàng chính hãng,SMY,SMY (Tp.HCM),190000.0,120000.0,36.84,70000.0,2026-11-16 12:19:19.706081
+alt_e5abc1f77a16,FLASH_SALE_DETECTED,21894780,Máy Sấy Tóc SUNHOUSE SHD2308W (1500W) - Hàng chính hãng,Sunhouse,Tiki Trading,221000.0,108000.0,51.13,113000.0,2026-11-16 12:19:19.706081
+alt_dcd687de5ab8,FLASH_SALE_DETECTED,51336598,"Màng lọc bụi bằng xốp Stanley 19-1600 phụ kiện máy hút bụi Stanley SL18125DC, SL19116, SL19116P, SL19417P-6A , SL19417-6A ( Hàng chính hãng)",Stanley,Trung Tâm Công Cụ,145000.0,95000.0,34.48,50000.0,2026-11-16 12:19:19.706081
+alt_38faaa9faf12,FLASH_SALE_DETECTED,44174886,Adaptor – Ballast - biến áp chuyển nguồn đèn cực tím UV - 4 chấu – Hàng chính hãng,SMY,SMY (Tp.HCM),250000.0,149000.0,40.4,101000.0,2026-11-16 12:19:19.706081
+alt_54d0007312b8,FLASH_SALE_DETECTED,72515213,"Lõi lọc Sediment PP ROBOT 11"" (đúc nguyên khối kín - Korea) - Hàng chính hãng",Robot,ROBOT AN TOÀN ĐIỆN,270000.0,129000.0,52.22,141000.0,2026-11-16 12:19:19.706081
+alt_0ccc864a6685,FLASH_SALE_DETECTED,83196454,Lõi lọc thô số 1 hàng nhập khẩu Nanometer Đài Loan,Nanometer,ALT,70000.0,39000.0,44.29,31000.0,2026-11-16 12:19:19.706081
+alt_a62f30057ecd,FLASH_SALE_DETECTED,72793539,NỒI CƠM ĐIỆN 1.2L HAPPY TIME HTD8522G (Loại A) - Hàng Chính Hãng,Sunhouse,Cửa hàng Phương Phương,585000.0,323000.0,44.79,262000.0,2026-11-16 12:19:19.706081
+alt_a7b14be4cfb5,FLASH_SALE_DETECTED,71196779,"Nồi nấu cháo chậm, ninh hầm cách thuỷ BEAR SUBE002 1.6L (kèm 2 thố nhỏ 0.5L và lồng hấp) - Hàng chính hãng",Bear,Tiki Trading,769000.0,424000.0,44.86,345000.0,2026-11-16 12:19:19.706081
+alt_dfe9dcac18cb,FLASH_SALE_DETECTED,46211878,Tông đơ cắt  tóc chuyên nghiệp SPA kemei KM1984,Kemei,Halo Buy,650000.0,325000.0,50.0,325000.0,2026-11-16 12:19:19.706081
+alt_87f8173bff71,FLASH_SALE_DETECTED,16084231,Bếp gas đôi mặt inox Namilux NA-682DSM tặng dây dẫn gas VN Hàng chính hãng,NaMilux,Home Star Store,729000.0,438000.0,39.92,291000.0,2026-11-16 12:19:19.706081
+alt_a9c68b297684,FLASH_SALE_DETECTED,52403863,"Đầu hút bảng lớn Model 08-2503 dùng cho máy hút bụi Stanley SL19501P-12A, SL19501-12B, SL19199-16A ( Hàng chính hãng)",Stanley,Trung Tâm Công Cụ,280000.0,193000.0,31.07,87000.0,2026-11-16 12:19:19.706081
+alt_f6bfe24509e2,FLASH_SALE_DETECTED,103472001,Máy sấy tóc Ion âm Enchen Air - mềm mại không làm hư tổn tóc,Enchen,HoangHai store,439200.0,257000.0,41.48,182200.0,2026-11-16 12:19:19.706081
+alt_ec1300da19de,FLASH_SALE_DETECTED,20955731,Bộ Van Dây Ngắt Gas Tự Động NaMilux NA-345S- Hàng Chính Hãng.,NaMilux,Home Star Store,199000.0,116000.0,41.71,83000.0,2026-11-16 12:19:19.706081
+alt_7b083ea0f0b4,FLASH_SALE_DETECTED,2581851,Đèn Khò Gas Namilux NA-187 - Hàng Chính Hãng,NaMilux,Home Star Store,279000.0,138000.0,50.54,141000.0,2026-11-16 12:19:19.706081
+alt_56b4388d6d91,FLASH_SALE_DETECTED,45446986,Máy cạo râu doanh nhân Việt KM1102,Kemei,Halo Buy,300000.0,165000.0,45.0,135000.0,2026-11-16 12:19:19.706081
+alt_d7e4ee81f804,FLASH_SALE_DETECTED,48962562,Máy Vắt Cam SHARP EJ-J256-WH - Hàng Chính Hãng,Sharp,Tiki Trading,238000.0,153000.0,35.71,85000.0,2026-11-16 12:19:19.706081
+alt_53d78637f8c4,FLASH_SALE_DETECTED,42629479,Tông Đơ Cắt Tóc Codol 531 TẶNG Bộ Kéo Cắt Tỉa + Áo Choàng Cắt Tóc Chống Nước,codol,Halo Buy,350000.0,159000.0,54.57,191000.0,2026-11-16 12:19:19.706081
+alt_ae008fdc765b,FLASH_SALE_DETECTED,77659465,Van áp cao máy lọc nước R.O nối nhanh (Hàng chính hãng),SMY,SMY (Tp.HCM),100000.0,64000.0,36.0,36000.0,2026-11-16 12:19:19.706081
+alt_a83c3ce9651c,FLASH_SALE_DETECTED,74386218,ĐÈN KHÒ GAS NAMILUX TS1719RN ( SẢN PHẨM HỢP TÁC XUẤT KHẨU ASAHI SEISAKUSHO - JAPAN ),NaMilux,Home Star Store,239000.0,113000.0,52.72,126000.0,2026-11-16 12:19:19.706081
+alt_2399c811a794,FLASH_SALE_DETECTED,52539878,Bộ đèn UV 14W dùng cho máy lọc nước (3 tấc),SMY,SMY (Tp.HCM),450000.0,270000.0,40.0,180000.0,2026-11-16 12:19:19.706081
+alt_796588fcc32b,FLASH_SALE_DETECTED,72515477,"Lõi lọc Pre Carbon ROBOT 11"" (đúc nguyên khối kín - Korea) - Hàng chính hãng",Robot,ROBOT AN TOÀN ĐIỆN,450000.0,264000.0,41.33,186000.0,2026-11-16 12:19:19.706081
+alt_e7348a4ac02d,FLASH_SALE_DETECTED,96544632,COMBO BẾP GAS CÔNG NGHIỆP HẨM WINDO 280 ( ĐEN ) + TẶNG BÔ VAN DÂY - HÀNG CHÍNH HÃNG,WINDO,Home Star Store,659000.0,423000.0,35.81,236000.0,2026-11-16 12:19:19.706081
+alt_ff6459173817,FLASH_SALE_DETECTED,70832055,Máy Cạo Râu Panasonic ES534DP527 - Hàng Chính Hãng,Panasonic,AM MART,260000.0,171000.0,34.23,89000.0,2026-11-16 12:19:19.706081
+alt_37a0ed865ad2,FLASH_SALE_DETECTED,13441744,Bàn là hơi nước NI-M300TARA - Hàng chính hãng,Panasonic,Siêu Thị Điện Máy Từ Sơn,610000.0,290000.0,52.46,320000.0,2026-11-16 12:19:19.706081
+alt_b2c813928b15,FLASH_SALE_DETECTED,56202997,Đế cao su Máy xay sinh tố JTC Omniblend - Hàng Nhập Khẩu,Omniblend,JTC OmniBlend Official,210000.0,105000.0,50.0,105000.0,2026-11-16 12:19:19.706081
+alt_9b85ce514d06,FLASH_SALE_DETECTED,12638220,Máy Sấy Tóc Tiross TS4321,Tiross,Tiross Hà Nội,399000.0,193000.0,51.63,206000.0,2026-11-16 12:19:19.706081
+alt_5339096c70d8,FLASH_SALE_DETECTED,67376555,"Tông đơ chấn viền Kemei-1949 cao cấp sử dụng đầu sạc USB tiện lợi, toàn thân là hợp kim nhôm không gỉ chuyên dụng bấm viền, khắc tóc, cạo trọc",Kemei,Halo Buy,600000.0,274000.0,54.33,326000.0,2026-11-16 12:19:19.706081
+alt_442766cb7557,FLASH_SALE_DETECTED,449515,Bếp Hồng Ngoại Cảm Ứng Sunhouse SHD6017 - Hàng chính hãng,Sunhouse,Cửa hàng Phương Phương,780926.0,538000.0,31.11,242926.0,2026-11-16 12:19:19.706081
+alt_ba2f7b4e94a5,FLASH_SALE_DETECTED,88206665,"Máy Sấy Tóc Philips BHD350/10 - Công Suất 2100W, 3 Chế Độ Sấy, ION - Hàng Chính Hãng",Philips,Siêu Thị Điện Máy Từ Sơn,700000.0,395000.0,43.57,305000.0,2026-11-16 12:19:19.706081
+alt_587c88cb93d3,FLASH_SALE_DETECTED,3480333,Bình Đun Siêu Tốc 2 lớp Lock&Lock EJK738WHT (1.7 Lít) - Trắng - Hàng chính hãng,LocknLock,Tiki Trading,544040.0,298000.0,45.22,246040.0,2026-11-16 12:19:19.706081
+alt_022fb60b1c9e,FLASH_SALE_DETECTED,23028790,Combo 2 quạt mini cầm tay 3 chế độ gió (màu ngẫu nhiên) - Hàng nhập khẩu,Hutis,Vietstore24h,69500.0,43000.0,38.13,26500.0,2026-11-16 12:19:19.706081
+alt_de2163fb462b,FLASH_SALE_DETECTED,63166287,"Đèn Sưởi Nhà Tắm ABG CH-C3D 3 Bóng Sưởi, Mỗi Bóng Công Suất 275W Phù Hợp Với Phòng Tắm Rộng Từ 4-6 Mét Vuông - Hàng Chính Hãng",ABG,Pi Stores,439000.0,227000.0,48.29,212000.0,2026-11-16 12:19:19.706081
+alt_a45ed5625755,FLASH_SALE_DETECTED,48748940,Tông đơ cắt tóc chuyên nghiệp kemei KM1949,Kemei,Halo Buy,500000.0,333000.0,33.4,167000.0,2026-11-16 12:19:19.706081
+alt_f799c86763f7,FLASH_SALE_DETECTED,63483054,Quạt Lỡ USS LU04-Hàng Chính Hãng( Giao màu ngẫu nhiên),USS,Điện Gia dụng USS,319000.0,177000.0,44.51,142000.0,2026-11-16 12:19:19.706081
+alt_a13d9ba6e2f7,FLASH_SALE_DETECTED,67956738,Van gas cao áp cao cấp NaMilux NA-538SH-VN dùng cho bếp công nghiệp(bếp khè)- Hàng chính hãng,NaMilux,Home Star Store,209000.0,142000.0,32.06,67000.0,2026-11-16 12:19:19.706081
+alt_65d4ea657177,FLASH_SALE_DETECTED,46117734,"Máy Xông Tinh Dầu Đuổi Muỗi Bạch Tuyết | Giúp Phun Sương, Xông Phòng | Tặng 3 Chai Tinh Dầu Kobi Sả Chanh + Bạc Hà + Oải Hương Nhập Khẩu Ấn Độ",KOBI,Kobi official store,369000.0,177000.0,52.03,192000.0,2026-11-16 12:19:19.706081
+alt_838ff8045d0f,FLASH_SALE_DETECTED,2365901,Nồi Cơm Nắp Gài Toshiba RC-10JFM(H)VN (1L) - Hàng chính hãng,Toshiba,AM MART,582000.0,350000.0,39.86,232000.0,2026-11-16 12:19:19.706081
+alt_c78583c4d99d,FLASH_SALE_DETECTED,72517849,"Màng Lọc UF ROBOT 10"" (đúc nguyên khối kín - Taiwan) - Hàng chính hãng",Robot,ROBOT AN TOÀN ĐIỆN,370000.0,211000.0,42.97,159000.0,2026-11-16 12:19:19.706081
+alt_159b4e2e532c,FLASH_SALE_DETECTED,1733763,Bộ Van Bình Ngắt Gas Tự Động Namilux NA-345S-VN - Hàng Chính Hãng,NaMilux,Home Star Store,199000.0,139000.0,30.15,60000.0,2026-11-16 12:19:19.706081
+alt_46237d74d0f8,FLASH_SALE_DETECTED,72517849,"Màng Lọc UF ROBOT 10"" (đúc nguyên khối kín - Taiwan) - Hàng chính hãng",Robot,ROBOT AN TOÀN ĐIỆN,370000.0,252000.0,31.89,118000.0,2026-11-16 12:19:19.706081
+alt_3a50558f0134,FLASH_SALE_DETECTED,31696679,ĐIỆN TRỞ ĐỐT NÓNG 800W,Daiviet Protech,Thiết Bị Ngành Lọc Nước,249000.0,168000.0,32.53,81000.0,2026-11-16 12:19:19.706081
+alt_4b82a84ede51,FLASH_SALE_DETECTED,52574340,Bộ lọc nước nước trực tiếp tại vòi - Hàng chính hãng,SMY,SMY (Tp.HCM),90000.0,50000.0,44.44,40000.0,2026-11-16 12:19:19.706081
+alt_38e2b262a615,FLASH_SALE_DETECTED,71196779,"Nồi nấu cháo chậm, ninh hầm cách thuỷ BEAR SUBE002 1.6L (kèm 2 thố nhỏ 0.5L và lồng hấp) - Hàng chính hãng",Bear,Tiki Trading,769000.0,483000.0,37.19,286000.0,2026-11-16 12:19:19.706081
+alt_2fe9a2f49b95,FLASH_SALE_DETECTED,89066183,"Máy xanh sinh tố Lock&Lock High Speed Blender EJM376BLK, 220-240V, 50/60Hz, 600W (Đen) - Hàng chính hãng",LocknLock,Điện Máy Vymart,719000.0,467000.0,35.05,252000.0,2026-11-16 12:19:19.706081
+alt_cd8aa893ce81,FLASH_SALE_DETECTED,70784092,Máy sấy tóc Panasonic EH–ND57 – Hàng chính hãng,Panasonic,AM MART,717600.0,456000.0,36.45,261600.0,2026-11-16 12:19:19.706081
+alt_4ab2b7d5ac88,FLASH_SALE_DETECTED,72544927,Lõi lọc đá khoàng Maifan ROBOT (đúc nguyên khối kín) - Hàng chính hãng,Robot,ROBOT AN TOÀN ĐIỆN,250000.0,124000.0,50.4,126000.0,2026-11-16 12:19:19.706081
+alt_46d496434930,FLASH_SALE_DETECTED,92024587,LÕI SỐ 1 - SMAX DUO 1 - VI LỌC - Hàng Chính Hãng,Karofi,GIA DỤNG VIỆT,55000.0,29000.0,47.27,26000.0,2026-11-16 12:19:19.706081
+alt_c0aba23f9d1a,FLASH_SALE_DETECTED,1725813,Bộ Van Bình Ngắt Gas Tự Động NaMilux NH-205S - Hàng chính hãng,NaMilux,NaMilux Official Store,239000.0,161000.0,32.64,78000.0,2026-11-16 12:19:19.706081
+alt_a1511b3c2bce,FLASH_SALE_DETECTED,74623864,Bộ Cốc Lọc Đầu Nguồn Kangaroo KG01G3 – Hàng Chính Hãng,Kangaroo,Tiki Trading,791000.0,537000.0,32.11,254000.0,2026-11-16 12:19:19.706081
+alt_211bccfe57d6,FLASH_SALE_DETECTED,42838693,Bộ 02 Tê chia ba đầu dây nối nhanh dùng trong máy lọc nước – hàng chính hãng,SMY,SMY (Tp.HCM),45000.0,24000.0,46.67,21000.0,2026-11-16 12:19:19.706081
+alt_69e0d2144324,FLASH_SALE_DETECTED,36154427,Bóng đèn UV 14w dài 300mm - 4 chấu - Hàng chính hãng,Daiviet Protech,Thiết Bị Ngành Lọc Nước,219000.0,99000.0,54.79,120000.0,2026-11-16 12:19:19.706081
+alt_a167b24d6c41,FLASH_SALE_DETECTED,14767917,Lõi Lọc R.O Sunhouse Số 2 SHRLL2 - Hàng Chính Hãng,Sunhouse,Tiki Trading,57000.0,31000.0,45.61,26000.0,2026-11-16 12:19:19.706081
+alt_6e584e3edf74,FLASH_SALE_DETECTED,13822784,Lõi Số 1 - 10'' PP - 5 micro Kangaroo K28 - Hàng chính hãng,Kangaroo,GIA DỤNG VIỆT,25000.0,16000.0,36.0,9000.0,2026-11-16 12:19:19.706081
+alt_95a4ebaaa03d,FLASH_SALE_DETECTED,80014659,"Lõi Lọc HEPA, Than Hoạt Tính Dành Cho Máy Lọc Không Khí Đa Năng AP - Máy Lọc Không Khí Cho Ô Tô/Xe Hơi - Hàng Nhập Khẩu",AP AirPurifier,SRC Store,199000.0,91000.0,54.27,108000.0,2026-11-16 12:19:19.706081
+alt_66b375768b44,FLASH_SALE_DETECTED,81210079,"Bếp Ga Mini,Bếp Ga Du Lịch Cao Cấp Hayasa Có Hộp Đựng Siêu Bền Tiện Lợi - Hàng Chính Hãng",Hayasa,Gia Dụng NuHa,265000.0,134000.0,49.43,131000.0,2026-11-16 12:19:19.706081
+alt_08dc83f175b2,FLASH_SALE_DETECTED,102431931,Ấm Đun Siêu Tốc Inox 2 Lớp Sunhouse SHD1353 (1.8 Lít) - Hàng Chính Hãng,Sunhouse,Tiki Trading,216000.0,97000.0,55.09,119000.0,2026-11-16 12:19:19.706081
+alt_ffbd1058d0fc,FLASH_SALE_DETECTED,52418508,"Đầu hút khe nhỏ Model 13-1508 dùng cho máy hút bụi Stanley SL18125DC, SL19116, SL19116P ( Hàng chính hãng)",Stanley,Trung Tâm Công Cụ,145000.0,99000.0,31.72,46000.0,2026-11-16 12:19:19.706081
+alt_f033a3404dd6,FLASH_SALE_DETECTED,72518544,Lõi lọc PP 1 micron ROBOT Taiwan - Hàng chính hãng,Robot,ROBOT AN TOÀN ĐIỆN,120000.0,79000.0,34.17,41000.0,2026-11-16 12:19:19.706081
+alt_c8892c1c3477,FLASH_SALE_DETECTED,38138637,Tông đơ cắt tóc  Kemei KM 5017,Kemei,Halo Buy,275000.0,182000.0,33.82,93000.0,2026-11-16 12:19:19.706081
+alt_7379ddeaeb76,FLASH_SALE_DETECTED,95858429,Van gas cao áp cao cấp WINDO  dùng cho bếp công nghiệp (bếp khè)- Hàng chính hãng,WINDO,Home Star Store,199000.0,134000.0,32.66,65000.0,2026-11-16 12:19:19.706081
+alt_fa276ed78489,FLASH_SALE_DETECTED,23076180,Lõi số 1 - PP5Micron,PCBlife,MÁY LỌC NƯỚC PCBlife,48000.0,26000.0,45.83,22000.0,2026-11-16 12:19:19.706081
+alt_6ac2b9f670d1,FLASH_SALE_DETECTED,52889784,"Ống nối mềm Stanley 13-3300 - Phụ kiện máy hút bụi Stanley SL19116 , SL19116P , SL19417P-6A , SL19417-6A , SL19301-4B ( Hàng chính hãng)",Stanley,Trung Tâm Công Cụ,409000.0,191000.0,53.3,218000.0,2026-11-16 12:19:19.706081
+alt_9219003039fe,FLASH_SALE_DETECTED,56523623,Tay vặn cốc lọc màng lọc RO - tay vặn màng lọc R.O (Hàng chính hãng),SMY,SMY (Tp.HCM),35000.0,20000.0,42.86,15000.0,2026-11-16 12:19:19.706081
+alt_761daa0ceb0c,FLASH_SALE_DETECTED,29148724,QUẠT GIẢI NHIỆT - HÀNG CHÍNH HÃNG,Daiviet Protech,Thiết Bị Ngành Lọc Nước,299000.0,165000.0,44.82,134000.0,2026-11-16 12:19:19.706081
+alt_e0596f6a37ea,FLASH_SALE_DETECTED,56514020,Tay vặn – mở - khóa ly - cốc máy lọc nước R.O – lọc thô 4 chấu - Hàng chính hãng,SMY,SMY (Tp.HCM),30000.0,18000.0,40.0,12000.0,2026-11-16 12:19:19.706081
+alt_8cb388925a66,FLASH_SALE_DETECTED,57500266,Quạt Thông Minh Mipow Flip Adjust Mini Fan (Màu xanh) - HÀNG CHÍNH HÃNG,MIPOW,Nhà Giả Kim,290000.0,152000.0,47.59,138000.0,2026-11-16 12:19:19.706081
+alt_a8fd96a21172,FLASH_SALE_DETECTED,23079284,Lõi số Cation - Hàng chính hãng,PCBlife,MÁY LỌC NƯỚC PCBlife,150000.0,85000.0,43.33,65000.0,2026-11-16 12:19:19.706081
+alt_571d47eedd30,FLASH_SALE_DETECTED,48586992,Đĩa Lò Vi Sóng Cao Cấp đường kính 27cm,Thuận Dung,VẬT TƯ ĐIỆN LẠNH THUẬN DUNG,115000.0,63000.0,45.22,52000.0,2026-11-16 12:19:19.706081
+alt_92e92c08b834,FLASH_SALE_DETECTED,56523623,Tay vặn cốc lọc màng lọc RO - tay vặn màng lọc R.O (Hàng chính hãng),SMY,SMY (Tp.HCM),35000.0,23000.0,34.29,12000.0,2026-11-16 12:19:19.706081
+alt_5f297501bbdf,FLASH_SALE_DETECTED,20831735,Lõi lọc nước số 1 Kangaroo thay thế cho các loại máy lọc RO - Hàng chính hãng,Kangaroo,GIA DỤNG VIỆT,25000.0,16000.0,36.0,9000.0,2026-11-16 12:19:19.706081
+alt_fab3c516b8ad,FLASH_SALE_DETECTED,53758851,Bình Đun Siêu Tốc 2 Lớp Nagakawa NAG0315 (1.8 Lít) - Hàng Chính Hãng,Nagakawa,Tiki Trading,317000.0,177000.0,44.16,140000.0,2026-11-16 12:19:19.706081
+alt_bb41783fd339,FLASH_SALE_DETECTED,392067,Bàn Ủi Khô Philips HD1172/01 (1000W) - Hàng chính hãng,Philips,AM MART,390000.0,243000.0,37.69,147000.0,2026-11-16 12:19:19.706081
+alt_508dacbf0f3e,FLASH_SALE_DETECTED,36994841,Máy Xay Sinh Tố Toshiba MX-60T(H) (600W - 1.5 Lít) - Hàng Chính Hãng,Toshiba,Tiki Trading,609000.0,388000.0,36.29,221000.0,2026-11-16 12:19:19.706081
+alt_52f08d17e463,FLASH_SALE_DETECTED,80964740,"Máy Sấy Tóc Cao Cấp Công Suất Lớn 2200W Chuyên Dụng Cho Hair Salon - Máy Sấy Tóc Bổ Sung Ion Dưỡng Ẩm, Làm Mềm Mượt Tóc - Máy Sấy Tóc Cao Cấp Động Cơ Êm Ái, Ổn Định – Chính Hãng VinBuy",VinBuy,VinBuy,299500.0,190000.0,36.56,109500.0,2026-11-16 12:19:19.706081
+alt_9bc2bba642c8,FLASH_SALE_DETECTED,42617248,"Phụ kiện kết nối bộ lọc thô, lọc sinh hoạt 10 inch ren phi 21 - Hàng chính hãng",SMY,SMY (Tp.HCM),115000.0,72000.0,37.39,43000.0,2026-11-16 12:19:19.706081
+alt_361dc051937b,FLASH_SALE_DETECTED,42194291,Vỏ màng R.O nối nhanh trong máy lọc nước R.O gia đình - Hàng chính hãng,SMY,SMY (Tp.HCM),95000.0,43000.0,54.74,52000.0,2026-11-16 12:19:19.706081
+alt_5e689afd783a,FLASH_SALE_DETECTED,59228277,Tông đơ cắt tóc chuyên nghiệp có đèn led kemei KM1983,Kemei,Halo Buy,700000.0,373000.0,46.71,327000.0,2026-11-16 12:19:19.706081
+alt_1b47e8da3609,FLASH_SALE_DETECTED,55964130,"Combo 2 lõi 5,6 Kangaroo - hàng chính hãng Kangaroo",Kangaroo,GIA DỤNG VIỆT,525000.0,359000.0,31.62,166000.0,2026-11-16 12:19:19.706081
+alt_b92da08d0c75,FLASH_SALE_DETECTED,24598534,Máy Tạo Kiểu Tóc Panasonic EH-HV11-K645 (Đen) - Hàng Chính Hãng,Panasonic,AM MART,771600.0,356000.0,53.86,415600.0,2026-11-16 12:19:19.706081
+alt_faecd35927e5,FLASH_SALE_DETECTED,72540487,"Lõi lọc Cation 11"" ROBOT - Hàng chính hãng",Robot,ROBOT AN TOÀN ĐIỆN,180000.0,114000.0,36.67,66000.0,2026-11-16 12:19:19.706081
+alt_d20ee1f1095d,FLASH_SALE_DETECTED,44118876,"Co tê cân 01 đầu đút 02 đầu nhấn dây 6mm dùng trong lọc nước, phun sương, dàn tưới cây, bể thủy sinh, cá cảnh, bán cạn",SMY,SMY (Tp.HCM),25000.0,14000.0,44.0,11000.0,2026-11-16 12:19:19.706081
+alt_b3c99cf5e2f9,FLASH_SALE_DETECTED,105159087,Bếp Gas Đơn Mặt Kính Chén Đồng WINDO - Màu Ngẫu  Nhiên Hàng Chính Hãng,WINDO,Home Star Store,359000.0,227000.0,36.77,132000.0,2026-11-16 12:19:19.706081
+alt_dc4b99398fa2,FLASH_SALE_DETECTED,15734152,Combo 10 co nối nhanh ren 13 ra dây 10– 4064-Q011B - Hàng chính hãng,SMY,SMY (Tp.HCM),150000.0,90000.0,40.0,60000.0,2026-11-16 12:19:19.706081
+alt_81cc58e6ff1b,FLASH_SALE_DETECTED,53611091,Combo 01 van 1 chiều – 02 co ren 10 ra dây 6 dùng cho vỏ màng máy lọc R.O- Hàng chính hãng,SMY,SMY (Tp.HCM),75000.0,34000.0,54.67,41000.0,2026-11-16 12:19:19.706081
+alt_e7cbdf20c7be,FLASH_SALE_DETECTED,36133134,Adaptor 14w-Hàng chính hãng,Daiviet Protech,Thiết Bị Ngành Lọc Nước,219000.0,146000.0,33.33,73000.0,2026-11-16 12:19:19.706081
+alt_206b1e9cda86,FLASH_SALE_DETECTED,40586914,Van điện từ phi 27mm - Hàng chính hãng,Daiviet Protech,Thiết Bị Ngành Lọc Nước,349000.0,238000.0,31.81,111000.0,2026-11-16 12:19:19.706081
+alt_80d5a27b5254,FLASH_SALE_DETECTED,42325967,Bộ 02 co bơm nối nhanh dùng trong máy lọc nước – Hàng chính hãng,SMY,SMY (Tp.HCM),30000.0,16000.0,46.67,14000.0,2026-11-16 12:19:19.706081
+alt_d0408dd36f59,FLASH_SALE_DETECTED,23357927,Lõi Lọc Nước Số 2 20 inch - Chính Hãng Karofi,Karofi,GIA DỤNG VIỆT,220000.0,134000.0,39.09,86000.0,2026-11-16 12:19:19.706081
+alt_453c25ab3c82,FLASH_SALE_DETECTED,73628813,"Tông đơ cắt tóc không dây Kemei KM-809A có màn hình LCD tiện dụng, có thể cắm điện trực tiếp",Kemei,Halo Buy,325000.0,171000.0,47.38,154000.0,2026-11-16 12:21:46.018434
+alt_ac4ec23e5908,FLASH_SALE_DETECTED,1374825,Lõi Lọc Cấp 1PP 5µm (Máy Lọc Nước RO) Aquafilter,AQuafilter,AQUAFILTER -Máy lọc nước nhập khẩu Châu Âu,140000.0,70000.0,50.0,70000.0,2026-11-16 12:21:46.018434
+alt_d8131b9851f5,FLASH_SALE_DETECTED,15743658,Quạt Treo Remote USS- Hàng chính hãng,USS,Điện Gia dụng USS,440000.0,212000.0,51.82,228000.0,2026-11-16 12:21:46.018434
+alt_b693949878e8,FLASH_SALE_DETECTED,57649657,Quạt Thông Minh Mipow Flip Adjust Mini Fan MÀU TRĂNG- CHÍNH HÃNG,MIPOW,Nhà Giả Kim,290000.0,187000.0,35.52,103000.0,2026-11-16 12:21:46.018434
+alt_8a5d9bef0f08,FLASH_SALE_DETECTED,85653836,Ấm Siêu Tốc Thủy Tinh 1.8L Matika MTK-35 Công Suất 1800W Thiết Kế Hiện Đại Trong Suốt Đun Nước Siêu Nhanh Có Đèn Led Khi Sôi-Hàng Chính Hãng,Matika,Home Star Store,345000.0,226000.0,34.49,119000.0,2026-11-16 12:21:46.018434
+alt_93d8978c3e2e,FLASH_SALE_DETECTED,51336150,"Ống nối mềm hút bụi Stanley 08-2536 phụ kiện máy hút bụi Stanley SL19501P-12A, SL19501-12B, SL19199-16A ( Hàng chính hãng)",Stanley,Trung Tâm Công Cụ,650000.0,354000.0,45.54,296000.0,2026-11-16 12:21:46.018434
+alt_9aaa2a7200ed,FLASH_SALE_DETECTED,97511923,Lõi lọc nước 123 Đại Việt PP-CTO-PP,Đại Việt,NPP TÂM SÁNG,275000.0,180000.0,34.55,95000.0,2026-11-16 12:21:46.018434
+alt_2a2e97120c04,FLASH_SALE_DETECTED,30989307,LY LỌC BIGBLUE 20 INCH,Daiviet Protech,Thiết Bị Ngành Lọc Nước,719000.0,438000.0,39.08,281000.0,2026-11-16 12:21:46.018434
+alt_4b4ebca78a8f,FLASH_SALE_DETECTED,88206667,"Máy Sấy Tóc Philips BHD300/10 - Công Suất 1600W, 3 Chế Độ Sấy - Hàng Chính Hãng",Philips,AM MART,819000.0,477000.0,41.76,342000.0,2026-11-16 12:21:46.018434
+alt_92fe6fa7145f,FLASH_SALE_DETECTED,95569739,"Tông đơ cắt tóc không dây Kemei KM-27C chuyên dụng cắt tóc trẻ em sơ sinh, cắt tóc cá nhân và gia đình, lưỡi sứ an toàn dễ sử dụng có 4 mức điều chỉnh lưỡi",Kemei,Halo Buy,175000.0,92000.0,47.43,83000.0,2026-11-16 12:21:46.018434
+alt_bbfadb2a6a3c,FLASH_SALE_DETECTED,66676624,Tông Đơ Cắt Tóc Không Dây Thông Minh - Tiện Dụng - Nhỏ Gọn,jichen,Halo Buy,153000.0,97000.0,36.6,56000.0,2026-11-16 12:21:48.899208
+alt_91f389835c29,FLASH_SALE_DETECTED,46211878,Tông đơ cắt  tóc chuyên nghiệp SPA kemei KM1984,Kemei,Halo Buy,650000.0,393000.0,39.54,257000.0,2026-11-16 12:21:48.899208
+alt_0f17d4139084,FLASH_SALE_DETECTED,32371308,Lõi lọc cho máy lọc nước Pure 258 NUVO,PURE,Máy lọc nước Pure Thái Lan,210000.0,141000.0,32.86,69000.0,2026-11-16 12:21:48.899208
+alt_e760dd22e942,FLASH_SALE_DETECTED,69015157,"Máy Hàn Miệng Túi ABG FS-200 – Máy Dán Miệng Túi Giúp Bảo Quản Thực Vật Tươi Lâu Hơn, Áp Dụng Phổ Biến Trong Đời Sống – Hàng Chính Hãng",ABG,Pi Stores,320000.0,223000.0,30.31,97000.0,2026-11-16 12:21:48.899208
+alt_03bc2bca132d,FLASH_SALE_DETECTED,63162061,"Đèn Sưởi ABG CH-A3D 3 Bóng Sưởi, Mỗi Bóng Công Suất 275W, Sưởi Ấm Nhà Tắm, Phòng Ngủ, Phòng Khách, Phù Hợp Với Phòng Tắm Rộng Từ 4-6 Mét Vuông - Hàng Chính Hãng",ABG,Pi Stores,439000.0,297000.0,32.35,142000.0,2026-11-16 12:21:48.899208
+alt_7e61449861f6,FLASH_SALE_DETECTED,52124502,Tông đơ cắt tóc chuyên nghiệp kemei 1977 pin lithium 2500mAh sử dụng 300 phút,Kemei,Halo Buy,539000.0,280000.0,48.05,259000.0,2026-11-16 12:21:48.899208
+alt_33aec2c39da3,FLASH_SALE_DETECTED,1375715,Lõi Lọc Cấp 3 Than Hoạt Tính Dạng Ép Aquafilter,AQuafilter,AQUAFILTER -Máy lọc nước nhập khẩu Châu Âu,235000.0,139000.0,40.85,96000.0,2026-11-16 12:21:48.899208
+alt_4464b4e88a7e,FLASH_SALE_DETECTED,38839598,Tông đơ cắt tóc chuyên nghiệp kemei 5017,Kemei,Halo Buy,300000.0,188000.0,37.33,112000.0,2026-11-16 12:21:48.899208
+alt_8286f528712d,FLASH_SALE_DETECTED,76149437,"Bộ 2 co, cút nối nhanh ren 13 ra dây 10 hoặc dây 6mm – linh kiện máy lọc nước, phun sương, lắp dàn tưới cây, bể thủy sinh, cá cảnh, bán cạn (Hàng chính hãng)",YAMATO,SMY (Tp.HCM),28000.0,14000.0,50.0,14000.0,2026-11-16 12:21:46.018434
+alt_252afcd5fe3e,FLASH_SALE_DETECTED,11593944,Máy Vắt Cam Tiross TS1392 (0.7L) - Hàng chính hãng,Tiross,Tiross Hà Nội,299000.0,162000.0,45.82,137000.0,2026-11-16 12:21:46.018434
+alt_b93fbb8e46b2,FLASH_SALE_DETECTED,42833330,Van cấp nước đầu nguồn kết nối nhanh dùng trong máy lọc nước – Hàng chính hãng,SMY,SMY (Tp.HCM),70000.0,44000.0,37.14,26000.0,2026-11-16 12:21:46.018434
+alt_622872c47481,FLASH_SALE_DETECTED,56514020,Tay vặn – mở - khóa ly - cốc máy lọc nước R.O – lọc thô 4 chấu - Hàng chính hãng,SMY,SMY (Tp.HCM),30000.0,20000.0,33.33,10000.0,2026-11-16 12:21:46.018434
+alt_7e3f753584d6,FLASH_SALE_DETECTED,52182997,Tông đơ cắt tóc bấm viền chuyên nghiệp Kemei 5017,Kemei,Halo Buy,275000.0,135000.0,50.91,140000.0,2026-11-16 12:21:46.018434
+alt_0dd518e777dc,FLASH_SALE_DETECTED,74595959,"Máy xay thịt tốc độ cao dung lượng 2L, chất liệu thép không gỉ tiện dụng trong gia đình",LDK.ai,Vietstore24h,125800.0,69000.0,45.15,56800.0,2026-11-16 12:21:46.018434
+alt_9b9ceb6f324c,FLASH_SALE_DETECTED,15734152,Combo 10 co nối nhanh ren 13 ra dây 10– 4064-Q011B - Hàng chính hãng,SMY,SMY (Tp.HCM),150000.0,74000.0,50.67,76000.0,2026-11-16 12:21:46.018434
+alt_82c57bf5d74c,FLASH_SALE_DETECTED,52653885,"Ấm siêu tốc inox Fujika dung tích 4Lit/5Lit, công suất 1500W-Hàng chính hãng",FUJIKA,Gia Dụng NuHa,238000.0,152000.0,36.13,86000.0,2026-11-16 12:21:46.018434
+alt_c700cc1d96ff,FLASH_SALE_DETECTED,6833801,"Bình đun siêu tốc thủy tinh 1,7 lít Ariete MOD. 2874 - Hàng chính hãng",Ariete ,Gia Khang,749000.0,454000.0,39.39,295000.0,2026-11-16 12:21:46.018434
+alt_d85136f42c9c,FLASH_SALE_DETECTED,51337072,"Bộ 3 túi đựng bụi MODEL 19-3100N dùng cho máy hút bụi STANLEY SL19117, SL19116, SL19116P- Hàng chính hãng",Stanley,Trung Tâm Công Cụ,325000.0,188000.0,42.15,137000.0,2026-11-16 12:21:46.018434
+alt_be8267900f3a,FLASH_SALE_DETECTED,34728894,Bếp Gas Đơn mặt kính Chén Nhôm Rainy hoa văn và màu sắc ngẫu nhiên  - Hàng Chính Hãng,Thiên Thủy RAINY ,Home Star Store,399000.0,273000.0,31.58,126000.0,2026-11-16 12:21:46.018434
+alt_6cabf5ea37f3,FLASH_SALE_DETECTED,48269559,"Tông Đơ Cắt Tóc Cho Bé, Trẻ Em Codol 531 TẶNG Bộ Kéo Cắt Tóc + Áo Choàng Cắt Tóc + Lược Cắt Tóc (Dày-Thưa) - Tăng Đơ Hớt Tóc Gia Đình Cho Người Lớn Và Bé Sơ Sinh Máy Chạy Êm Lưỡi Có Thể Thay",codol,Halo Buy,299000.0,166000.0,44.48,133000.0,2026-11-16 12:21:46.018434
+alt_eda9b5bdb850,FLASH_SALE_DETECTED,50367048,"Máy hút bụi đệm giường, chăn nệm Deerma CM800 diệt khuẩn bằng tia UV ( hàng nhập khẩu )",Deerma,CÔNG TY TNHH TMĐT KIM LONG,790000.0,501000.0,36.58,289000.0,2026-11-16 12:21:46.018434
+alt_c64f9a09b32f,FLASH_SALE_DETECTED,52539878,Bộ đèn UV 14W dùng cho máy lọc nước (3 tấc),SMY,SMY (Tp.HCM),450000.0,286000.0,36.44,164000.0,2026-11-16 12:21:39.682771
+alt_f8cb35f1ff65,FLASH_SALE_DETECTED,1411197,Nồi Cơm Điện Nắp Rời Sharp KSH-D06V (0.6L) - Màu Ngẫu Nhiên - Hàng Chính Hãng,Sharp,Gia Khang,619000.0,293000.0,52.67,326000.0,2026-11-16 12:21:39.682771
+alt_097b65ba170a,FLASH_SALE_DETECTED,29825403,Phụ Kiện Tháo Lưỡi Dao Máy Xay Công Nghiệp hiệu JTC Omniblend - Hàng Nhập Khẩu,JTC OmniBlend,JTC OmniBlend Official,40000.0,24000.0,40.0,16000.0,2026-11-16 12:21:39.682771
+alt_ca573f571fee,FLASH_SALE_DETECTED,63917938,"Combo  2 lõi lọc PP 20"" Thái Lan - Hàng chính hãng",PURE,Máy lọc nước Pure Thái Lan,140000.0,96000.0,31.43,44000.0,2026-11-16 12:21:39.682771
+alt_c1f6f55946dc,FLASH_SALE_DETECTED,59407925,"Ấm đun nước siêu tốc Điện Quang ĐQ EKT06 1518 BL (1500W, 1.8L, inox 201, nhựa PP màu đen) - Hàng chính hãng",Điện Quang,Bách Hóa Online 24h,164000.0,87000.0,46.95,77000.0,2026-11-16 12:21:39.682771
+alt_49925fccef37,FLASH_SALE_DETECTED,11593944,Máy Vắt Cam Tiross TS1392 (0.7L) - Hàng chính hãng,Tiross,Tiross Hà Nội,299000.0,140000.0,53.18,159000.0,2026-11-16 12:21:39.682771
+alt_34b08c190931,FLASH_SALE_DETECTED,79192858,"Hạt cation,hạt cation làm mềm nước (1kg)",USA,SMY (Tp.HCM),94000.0,59000.0,37.23,35000.0,2026-11-16 12:21:39.682771
+alt_eac912c0c0f3,FLASH_SALE_DETECTED,41680382,Tông Đơ Hớt Tóc Điện JC-0817 TẶNG Áo Choàng Cắt Tóc,jichen,Halo Buy,150000.0,78000.0,48.0,72000.0,2026-11-16 12:22:00.561055
+alt_bfe39121a335,FLASH_SALE_DETECTED,19578975,"Máy đánh trứng ngoáy sữa,cafe cầm tay mini tự động (Mẫu ngẫu nhiên) - Hàng chính hãng",Quà Trực Tuyến,HƯNG THỊNH SHOP,29000.0,14000.0,51.72,15000.0,2026-11-16 12:22:00.561055
+alt_ae9a340eff13,FLASH_SALE_DETECTED,51336987,"Đầu hút bụi bảng lớn Stanley 13-1570 phụ kiện máy hút bụi Stanley các dòng máy SL19116 , SL19116P , SL19128P , SL19136, SL19301-4B ( Hàng chính hãng)",Stanley,Trung Tâm Công Cụ,235000.0,126000.0,46.38,109000.0,2026-11-16 12:22:00.561055
+alt_51a99fe134dc,FLASH_SALE_DETECTED,68912552,TÔNG ĐƠ CẮT TÓC CHUYÊN NGHIỆP KEMEI 5017 - TẶNG KÈM BỘ KÉO CẮT TÓC JAPAN XANH và LƯỢC,Kemei,Halo Buy,500000.0,345000.0,31.0,155000.0,2026-11-16 12:22:00.561055
+alt_e2e1f2a81b1d,FLASH_SALE_DETECTED,45560050,"Tăng Đơ Hớt Tóc Gia Đình Cho Bé G10 Máy Chạy Êm TẶNG Lược 2 Đầu(Dày-Thưa) - Tông Đơ Cắt Tóc Gia Đình Cho Bé Sơ Sinh Dưới 6 Tháng , Người Già Có Hai Pin Rất Tiện Cho Việc Di Chuyên Cắt Liên Tục 150 Phút",G10,đồ gia dụng 8888,349000.0,189000.0,45.85,160000.0,2026-11-16 12:22:00.561055
+alt_81b9172f6f54,FLASH_SALE_DETECTED,55057555,Máy Đánh Trứng Cầm Tay 7 Tốc Độ Công Suất Lớn Tặng Kèm 4 Que Đánh Cao Cấp Thép Không Gỉ - Hàng Chính Hãng - Hàng Nhập Khẩu,Scarlett,Bách Hóa Bùi Uyên,119000.0,82000.0,31.09,37000.0,2026-11-16 12:21:53.714006
+alt_be9b8e3ee786,FLASH_SALE_DETECTED,71931497,Bộ lõi khoáng 5678 NAZARO hàng chính hãng,NAZARO,Nazaro,750000.0,433000.0,42.27,317000.0,2026-11-16 12:21:53.714006
+alt_7340cfa89dce,FLASH_SALE_DETECTED,38839502,Tông đơ cắt tóc G5 chuyên nghiêp,G5,đồ gia dụng 8888,389000.0,187000.0,51.93,202000.0,2026-11-16 12:21:53.714006
+alt_e66b44182052,FLASH_SALE_DETECTED,56517419,Tay vặn ly cốc máy lọc nước loại 10 inch (Hàng chính hãng),SMY,SMY (Tp.HCM),35000.0,19000.0,45.71,16000.0,2026-11-16 12:21:53.714006
+alt_def9d316c448,FLASH_SALE_DETECTED,48962562,Máy Vắt Cam SHARP EJ-J256-WH - Hàng Chính Hãng,Sharp,Tiki Trading,238000.0,157000.0,34.03,81000.0,2026-11-16 12:21:53.714006
+alt_692de751c687,FLASH_SALE_DETECTED,52418508,"Đầu hút khe nhỏ Model 13-1508 dùng cho máy hút bụi Stanley SL18125DC, SL19116, SL19116P ( Hàng chính hãng)",Stanley,Trung Tâm Công Cụ,145000.0,98000.0,32.41,47000.0,2026-11-16 12:21:53.714006
+alt_53cd753d5613,FLASH_SALE_DETECTED,2365901,Nồi Cơm Nắp Gài Toshiba RC-10JFM(H)VN (1L) - Hàng chính hãng,Toshiba,AM MART,582000.0,320000.0,45.02,262000.0,2026-11-16 12:21:53.714006
+alt_bf5ae80f28d6,FLASH_SALE_DETECTED,74238494,Quạt cầm tay tiện lợi gắn tai thỏ Damas N10 - Thiết kế dễ thương - Phù hợp tiêu chuẩn hiện đại (Giao màu ngẫu nnhiên),Damas,UniMart,159000.0,100000.0,37.11,59000.0,2026-11-16 12:21:51.384282
+alt_64f140423d1c,FLASH_SALE_DETECTED,29347612,BỘ 3 LÕI LỌC DAIVIETPROTECH - HÀNG CHÍNH HÃNG,Daiviet Protech,Thiết Bị Ngành Lọc Nước,199000.0,118000.0,40.7,81000.0,2026-11-16 12:21:51.384282
+alt_6c1f98f62f45,FLASH_SALE_DETECTED,16934551,Máy Cạo Râu Mạnh Mẽ Tiện Dụng Phong Cách SCW301U,Yandou,Ken Bun Shop,136000.0,77000.0,43.38,59000.0,2026-11-16 12:21:51.384282
+alt_9db53fd7fc31,FLASH_SALE_DETECTED,51097602,TÔNG ĐƠ CẮT TÓC SIÊU BÉN - SIÊU BỀN,Codos,Halo Buy,509000.0,317000.0,37.72,192000.0,2026-11-16 12:21:51.384282
+alt_efc42ab542b5,FLASH_SALE_DETECTED,16934551,Máy Cạo Râu Mạnh Mẽ Tiện Dụng Phong Cách SCW301U,Yandou,Ken Bun Shop,136000.0,76000.0,44.12,60000.0,2026-11-16 12:21:51.384282
+alt_bcc470cdda8c,FLASH_SALE_DETECTED,10098952,"Combo lõi lọc nước Karofi 1, 2, 3 dành cho nước Cứng - Hàng Chính Hãng",Karofi,GIA DỤNG VIỆT,220000.0,131000.0,40.45,89000.0,2026-11-16 12:21:51.384282
+alt_55b10b5dcaa3,FLASH_SALE_DETECTED,102141956,Bếp du lịch Compact Namilux PM1811AS - HÀNG CHÍNH HÃNG NAMILUX (MP),NaMilux,Home Star Store,439000.0,248000.0,43.51,191000.0,2026-11-16 12:22:08.575033
+alt_1f726ebb877d,FLASH_SALE_DETECTED,21431382,Nồi Cơm Nắp Rời Sharp KSH-D19V (1.8 Lít) - Màu ngẫu nhiên - Hàng chính hãng,Sharp,Gia Khang,709000.0,386000.0,45.56,323000.0,2026-11-16 12:22:08.575033
+alt_acb84e33cee0,FLASH_SALE_DETECTED,1357543,Máy Sấy Tóc Philips BHC010,Philips,Siêu Thị Điện Máy Từ Sơn,369000.0,191000.0,48.24,178000.0,2026-11-16 12:22:08.575033
+alt_e0bcc198d34f,FLASH_SALE_DETECTED,56517419,Tay vặn ly cốc máy lọc nước loại 10 inch (Hàng chính hãng),SMY,SMY (Tp.HCM),35000.0,17000.0,51.43,18000.0,2026-11-16 12:22:08.575033
+alt_6606fee407f0,FLASH_SALE_DETECTED,42325575,Bộ 02 co lõi nối nhanh – Hàng chính hãng,SMY,SMY (Tp.HCM),28000.0,15000.0,46.43,13000.0,2026-11-16 12:22:08.575033
+alt_6e3a4af67f80,FLASH_SALE_DETECTED,3071357,Lõi lọc cho máy lọc nước tại vòi Eurolife LS-D10,Eurolife,SEN VÒI EUROLIFE,237600.0,115000.0,51.6,122600.0,2026-11-16 12:22:08.575033
+alt_961c173ec9a4,FLASH_SALE_DETECTED,36133134,Adaptor 14w-Hàng chính hãng,Daiviet Protech,Thiết Bị Ngành Lọc Nước,219000.0,129000.0,41.1,90000.0,2026-11-16 12:21:56.027160
+alt_29009ed7f45e,FLASH_SALE_DETECTED,105159087,Bếp Gas Đơn Mặt Kính Chén Đồng WINDO - Màu Ngẫu  Nhiên Hàng Chính Hãng,WINDO,Home Star Store,359000.0,164000.0,54.32,195000.0,2026-11-16 12:21:56.027160
+alt_430aad234ba8,FLASH_SALE_DETECTED,67376555,"Tông đơ chấn viền Kemei-1949 cao cấp sử dụng đầu sạc USB tiện lợi, toàn thân là hợp kim nhôm không gỉ chuyên dụng bấm viền, khắc tóc, cạo trọc",Kemei,Halo Buy,600000.0,349000.0,41.83,251000.0,2026-11-16 12:21:56.027160
+alt_0263881dc841,FLASH_SALE_DETECTED,101870090,Đèn khò đế Namilux NA-191SP-VN - HÀNG CHÍNH HÃNG NAMILUX (MP),NaMilux,Home Star Store,369000.0,255000.0,30.89,114000.0,2026-11-16 12:21:56.027160
+alt_642c94d72e2f,FLASH_SALE_DETECTED,102431931,Ấm Đun Siêu Tốc Inox 2 Lớp Sunhouse SHD1353 (1.8 Lít) - Hàng Chính Hãng,Sunhouse,Tiki Trading,216000.0,142000.0,34.26,74000.0,2026-11-16 12:21:56.027160
+alt_5c2496b0638d,FLASH_SALE_DETECTED,92024615,LÕI SỐ 3 - SMAX DUO 3 - POST CARBON - Hàng chính hãng,Karofi,GIA DỤNG VIỆT,100000.0,67000.0,33.0,33000.0,2026-11-16 12:22:04.852246
+alt_faba486d33e4,FLASH_SALE_DETECTED,69150752,Bếp ga mini Namilux 2S Chống Nổ  PL2021PF chính hãng,NaMilux,Home Star Store,389000.0,223000.0,42.67,166000.0,2026-11-16 12:22:04.852246
+alt_736c89198ee5,FLASH_SALE_DETECTED,42629479,Tông Đơ Cắt Tóc Codol 531 TẶNG Bộ Kéo Cắt Tỉa + Áo Choàng Cắt Tóc Chống Nước,codol,Halo Buy,350000.0,159000.0,54.57,191000.0,2026-11-16 12:22:04.852246
+alt_b6de2cd80a3c,FLASH_SALE_DETECTED,448841,Máy Sấy Tóc Panasonic PAST-EH-ND11-A645 - Hàng Chính Hãng,Panasonic,AM MART,356400.0,228000.0,36.03,128400.0,2026-11-16 12:22:04.852246
+alt_f6620ae39967,FLASH_SALE_DETECTED,57814750,Bộ Lọc Hepa Cho Máy Hút Bụi Cầm Tay Derrma CM800 / CM900 - Hàng Chính Hãng,Deerma,ĐIỆN MÁY HTG,65000.0,29000.0,55.38,36000.0,2026-11-16 12:22:04.852246
+alt_d8d02e3aa5ad,FLASH_SALE_DETECTED,30988425,VỎ LY LỌC TRONG 10 INCH,Daiviet Protech,Thiết Bị Ngành Lọc Nước,179000.0,114000.0,36.31,65000.0,2026-11-16 12:22:04.852246
+alt_c6e3246f6c84,FLASH_SALE_DETECTED,13822784,Lõi Số 1 - 10'' PP - 5 micro Kangaroo K28 - Hàng chính hãng,Kangaroo,GIA DỤNG VIỆT,25000.0,15000.0,40.0,10000.0,2026-11-16 12:22:02.740626
+alt_81f6578fb275,FLASH_SALE_DETECTED,684651,Ấm Siêu Tốc Inox Happy Time Sunhouse HTD1081 (1.8 lít)- Hàng chính hãng,Sunhouse,Tiki Trading,123000.0,64000.0,47.97,59000.0,2026-11-16 12:22:02.740626
+alt_b5290beb641c,FLASH_SALE_DETECTED,68737177,Tông Đơ Cắt Tóc Chuyên Nghiệp KM - 5017 - Hàng Chính Hãng,Kemei,Halo Buy,220000.0,129000.0,41.36,91000.0,2026-11-16 12:22:02.740626
+alt_427f4ba09c9e,FLASH_SALE_DETECTED,1347699,Bình Đun Siêu Tốc Philips HD9350/90 (1.7L) - Hàng chính hãng,Philips,Tiki Trading,683000.0,382000.0,44.07,301000.0,2026-11-16 12:22:02.740626
+alt_398d2fbbfa1f,FLASH_SALE_DETECTED,2394877,Bếp Gas Hồng Ngoại Đôi Sunhouse SHB004MT - Hàng chính hãng,Sunhouse,Tiki Trading,639000.0,343000.0,46.32,296000.0,2026-11-16 12:22:02.740626

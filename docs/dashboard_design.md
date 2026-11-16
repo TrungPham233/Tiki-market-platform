@@ -48,7 +48,7 @@
 - **Business Question:** Who controls the category? Is the market overly concentrated?
 - **Visuals:**
   - Market Share by Estimated Revenue (Treemap)
-  - Top 5 Brands Concentration Ratio (CR5 KPI Card: ~98.55%)
+  - Top 5 Brands Concentration Ratio (CR5 KPI Card; latest crawl: 74.1%)
   - Seller Breakdown: Official Store (Tiki Trading) vs 3rd Party Sellers (Donut Chart)
 
 ### 📄 Page 4: Customer Perception & Quality Risk Watchlist (BQ3)

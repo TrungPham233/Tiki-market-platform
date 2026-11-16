@@ -54,10 +54,12 @@ def get_spark_session(
     master: str = "local[*]",
     use_delta: bool = True,
     use_minio: bool = False,
+    extra_packages: list = None,
 ) -> SparkSession:
     """
     Build and return a configured SparkSession.
     Supports local filesystem storage or S3A/MinIO lakehouse.
+    extra_packages: additional Maven coordinates (e.g. the Spark-Kafka connector).
     """
     builder = (
         SparkSession.builder.appName(app_name)
@@ -67,8 +69,12 @@ def get_spark_session(
         .config("spark.default.parallelism", "4")
         .config("spark.python.use.daemon", "false")
         .config("spark.sql.execution.arrow.pyspark.enabled", "true")
+        .config("spark.sql.session.timeZone", "UTC")
+        .config("spark.ui.showConsoleProgress", "false")
         .config("spark.driver.extraJavaOptions", JAVA_OPTS)
         .config("spark.executor.extraJavaOptions", JAVA_OPTS)
+        # Delta: let MERGE add new columns when the source schema evolves
+        .config("spark.databricks.delta.schema.autoMerge.enabled", "true")
     )
 
     if use_delta:
@@ -98,8 +104,12 @@ def get_spark_session(
         )
 
     if use_delta:
-        spark = configure_spark_with_delta_pip(builder).getOrCreate()
+        spark = configure_spark_with_delta_pip(
+            builder, extra_packages=extra_packages or []
+        ).getOrCreate()
     else:
+        if extra_packages:
+            builder = builder.config("spark.jars.packages", ",".join(extra_packages))
         spark = builder.getOrCreate()
 
     spark.sparkContext.setLogLevel("WARN")

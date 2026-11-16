@@ -14,15 +14,17 @@ erDiagram
     dim_date ||--o{ fact_reviews : "review_date"
 
     dim_product {
-        bigint product_sk PK
+        string product_sk PK "product_id + _v + version"
         bigint product_id
-        string product_name
+        int version
+        string name
         string brand_id FK
         string seller_id FK
         string subcategory_id FK
-        decimal original_price
+        double original_price
+        string row_hash "SHA-256 of SCD2-tracked attributes"
         timestamp valid_from
-        timestamp valid_to
+        timestamp valid_to "2099-12-31 for the current version"
         boolean is_current
     }
 

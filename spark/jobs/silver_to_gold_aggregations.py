@@ -1,25 +1,29 @@
 """
-Gold Layer: Business Intelligence & Aggregation Tables Job.
+Gold Layer: Business Aggregates (PySpark + Delta Lake).
 
-Answers the 6 Core Business Questions (BQ1 to BQ6):
-- BQ1: agg_discount_saturation (Effectiveness vs Diminishing Returns)
-- BQ2: agg_brand_market_share (Market share, Sales Volume, CR5 Concentration)
-- BQ3: agg_quality_risk_watchlist (High reviews + Low rating SKUs)
-- BQ4: agg_assortment_gaps (Price segments vs Subcategories gap analysis)
-- BQ6: agg_voc_complaint_causes (After-sales complaints vs Hardware defects)
+Built from the latest snapshot of each product in fact_product_snapshot:
+- BQ1 agg_discount_saturation    : units sold & rating by discount bracket
+- BQ2 agg_brand_market_share     : estimated revenue/volume share per brand + CR5
+- BQ3 agg_quality_risk_watchlist : many reviews but rating < 4.5
+- BQ4 agg_assortment_gaps        : SKU count per subcategory x price segment
+- BQ6 agg_voc_complaint_causes   : complaint causes among negative reviews
+
+Every aggregate carries its sample size (sku_count / review counts) so the
+dashboard can show how much data each number is based on.
 """
 import argparse
 import logging
 import sys
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
+from pyspark.sql import SparkSession, Window
+from pyspark.sql import functions as F
 
-# Add parent directory to sys.path
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
 
-from spark.config import GOLD_DIR
+from spark.config import GOLD_PATH, table_path
+from spark.delta_utils import overwrite
 
 logging.basicConfig(
     level=logging.INFO,
@@ -28,140 +32,125 @@ logging.basicConfig(
 )
 logger = logging.getLogger("gold_aggregations")
 
+# Products without reviews have rating_average = 0; leave them out of rating averages.
+def rated():
+    return F.when(F.col("review_count") > 0, F.col("rating_average"))
 
-def compute_business_aggregates(gold_dir: Path = GOLD_DIR) -> None:
-    """Generate business aggregation datasets in Gold layer."""
-    fact_prod_file = gold_dir / "fact_product_snapshot.parquet"
-    fact_rev_file = gold_dir / "fact_reviews.parquet"
-    dim_prod_file = gold_dir / "dim_product.parquet"
-    dim_brand_file = gold_dir / "dim_brand.parquet"
+DISCOUNT_BRACKETS = [(10, "0 - 10%"), (20, "10 - 20%"), (30, "20 - 30%"), (50, "30 - 50%")]
 
-    if not fact_prod_file.exists():
-        logger.error("fact_product_snapshot not found in %s", gold_dir)
-        return
 
-    df_p = pd.read_parquet(fact_prod_file)
-    df_dim_p = pd.read_parquet(dim_prod_file) if dim_prod_file.exists() else df_p
-    df_brand = pd.read_parquet(dim_brand_file) if dim_brand_file.exists() else None
+def compute_business_aggregates(spark: SparkSession, gold_path: str = GOLD_PATH) -> dict:
+    def gold(name):
+        return spark.read.format("delta").load(table_path(gold_path, name))
 
-    # Join brand name
-    if df_brand is not None:
-        df_p = df_p.merge(df_brand, on="brand_id", how="left")
-    else:
-        df_p["brand_name"] = "Unknown"
-
-    # Merge product details for names
-    if "name" in df_dim_p.columns:
-        df_p = df_p.merge(df_dim_p[["product_sk", "name"]], on="product_sk", how="left")
-    else:
-        df_p["name"] = "Product " + df_p["product_id"].astype(str)
-
-    # ----------------------------------------------------
-    # BQ2: Brand Market Share & CR5 Index
-    # ----------------------------------------------------
-    df_p["estimated_revenue"] = df_p["price"] * df_p["quantity_sold"]
-    total_market_rev = df_p["estimated_revenue"].sum()
-    total_market_vol = df_p["quantity_sold"].sum()
-
-    brand_grp = df_p.groupby("brand_name").agg(
-        sku_count=("product_id", "count"),
-        total_quantity_sold=("quantity_sold", "sum"),
-        total_estimated_revenue=("estimated_revenue", "sum"),
-        avg_rating=("rating_average", "mean"),
-    ).reset_index()
-
-    brand_grp["revenue_share_pct"] = np.round(
-        (brand_grp["total_estimated_revenue"] / total_market_rev) * 100, 2
-    ) if total_market_rev > 0 else 0.0
-
-    brand_grp["volume_share_pct"] = np.round(
-        (brand_grp["total_quantity_sold"] / total_market_vol) * 100, 2
-    ) if total_market_vol > 0 else 0.0
-
-    brand_grp = brand_grp.sort_values("revenue_share_pct", ascending=False)
-    # Compute Top 5 Concentration Ratio (CR5)
-    cr5_val = brand_grp.head(5)["revenue_share_pct"].sum()
-    logger.info("CR5 Index (Top 5 Brands Revenue Share): %.2f%%", cr5_val)
-
-    brand_grp.to_parquet(gold_dir / "agg_brand_market_share.parquet", index=False)
-    logger.info("✅ Saved agg_brand_market_share (%d brands)", len(brand_grp))
-
-    # ----------------------------------------------------
-    # BQ1: Discount Saturation Analysis
-    # ----------------------------------------------------
-    discount_bins = [0, 10, 20, 30, 50, 100]
-    discount_labels = ["0 - 10%", "10 - 20%", "20 - 30%", "30 - 50%", "Trên 50%"]
-    df_p["discount_bracket"] = pd.cut(
-        df_p["discount_rate_calc"], bins=discount_bins, labels=discount_labels, right=False
+    latest = Window.partitionBy("product_id").orderBy(F.col("date_key").desc())
+    snap = (
+        gold("fact_product_snapshot")
+        .withColumn("_rn", F.row_number().over(latest)).filter("_rn = 1").drop("_rn")
+        .join(gold("dim_brand"), "brand_id", "left")
+        .join(gold("dim_product").filter("is_current").select("product_id", "name"), "product_id", "left")
+        .withColumn("brand_name", F.coalesce("brand_name", F.lit("Unknown")))
+        .withColumn("estimated_revenue", F.col("price") * F.col("quantity_sold"))
+        .cache()
     )
+    total_skus = snap.count()
 
-    disc_grp = df_p.groupby("discount_bracket", observed=False).agg(
-        sku_count=("product_id", "count"),
-        avg_quantity_sold=("quantity_sold", "mean"),
-        median_quantity_sold=("quantity_sold", "median"),
-        avg_rating=("rating_average", "mean"),
-    ).reset_index()
-    disc_grp.to_parquet(gold_dir / "agg_discount_saturation.parquet", index=False)
-    logger.info("✅ Saved agg_discount_saturation")
+    # BQ2: brand share + CR5
+    totals = snap.agg(F.sum("estimated_revenue").alias("rev"), F.sum("quantity_sold").alias("vol")).first()
+    rev_total, vol_total = totals["rev"] or 0, totals["vol"] or 0
+    brand = (
+        snap.groupBy("brand_name").agg(
+            F.count("product_id").alias("sku_count"),
+            F.sum("quantity_sold").alias("total_quantity_sold"),
+            F.sum("estimated_revenue").alias("total_estimated_revenue"),
+            F.round(F.avg(rated()), 2).alias("avg_rating"),
+        )
+        .withColumn("revenue_share_pct",
+                    F.round(F.col("total_estimated_revenue") / F.lit(rev_total or 1) * 100, 2))
+        .withColumn("volume_share_pct",
+                    F.round(F.col("total_quantity_sold") / F.lit(vol_total or 1) * 100, 2))
+        .withColumn("revenue_rank", F.row_number().over(Window.orderBy(F.col("total_estimated_revenue").desc())))
+    )
+    overwrite(spark, brand, table_path(gold_path, "agg_brand_market_share"))
+    cr5 = brand.filter("revenue_rank <= 5").agg(F.sum("revenue_share_pct")).first()[0] or 0.0
+    n_brands = brand.count()
 
-    # ----------------------------------------------------
-    # BQ3: Quality Risk Watchlist (High reviews, low rating)
-    # ----------------------------------------------------
-    risk_skus = df_p[
-        (df_p["review_count"] >= 5) & (df_p["rating_average"] < 4.5)
-    ][["product_id", "name", "brand_name", "price", "rating_average", "review_count"]].copy()
-    risk_skus = risk_skus.sort_values("rating_average", ascending=True)
-    risk_skus.to_parquet(gold_dir / "agg_quality_risk_watchlist.parquet", index=False)
-    logger.info("✅ Saved agg_quality_risk_watchlist (%d risky SKUs identified)", len(risk_skus))
+    # BQ1: discount saturation
+    bracket = None
+    for upper, label in DISCOUNT_BRACKETS:
+        cond = F.col("discount_rate_calc") < upper
+        bracket = F.when(cond, label) if bracket is None else bracket.when(cond, label)
+    disc = (
+        snap.withColumn("discount_bracket", bracket.otherwise("Trên 50%"))
+        .groupBy("discount_bracket").agg(
+            F.count("product_id").alias("sku_count"),
+            F.round(F.avg("quantity_sold"), 1).alias("avg_quantity_sold"),
+            F.percentile_approx("quantity_sold", 0.5).alias("median_quantity_sold"),
+            F.round(F.avg(rated()), 2).alias("avg_rating"),
+            F.count(rated()).alias("rated_sku_count"),
+        )
+    )
+    overwrite(spark, disc, table_path(gold_path, "agg_discount_saturation"))
 
-    # ----------------------------------------------------
-    # BQ4: Assortment Gaps (Price Segment x Subcategory)
-    # ----------------------------------------------------
-    assort_matrix = pd.crosstab(
-        df_p["subcategory_id"],
-        df_p["price_segment"],
-        values=df_p["product_id"],
-        aggfunc="count",
-    ).fillna(0).reset_index()
-    assort_matrix.to_parquet(gold_dir / "agg_assortment_gaps.parquet", index=False)
-    logger.info("✅ Saved agg_assortment_gaps")
+    # BQ3: quality risk watchlist
+    risk = (
+        snap.filter((F.col("review_count") >= 5) & (F.col("rating_average") < 4.5))
+        .select("product_id", "name", "brand_name", "price", "rating_average", "review_count")
+        .orderBy("rating_average")
+    )
+    overwrite(spark, risk, table_path(gold_path, "agg_quality_risk_watchlist"))
 
-    # ----------------------------------------------------
-    # BQ6: Voice of Customer (VoC) Root Cause Complaints
-    # ----------------------------------------------------
-    if fact_rev_file.exists():
-        df_r = pd.read_parquet(fact_rev_file)
-        neg_reviews = df_r[df_r["sentiment_label"] == "negative"]
-        total_neg = len(neg_reviews)
+    # BQ4: assortment gaps, long format (subcategory x price segment, zero-filled)
+    segments = snap.select("price_segment").distinct()
+    subcats = snap.select("subcategory_id").distinct()
+    gaps = (
+        subcats.crossJoin(segments)
+        .join(snap.groupBy("subcategory_id", "price_segment").agg(F.count("product_id").alias("sku_count")),
+              ["subcategory_id", "price_segment"], "left")
+        .fillna(0, ["sku_count"])
+    )
+    overwrite(spark, gaps, table_path(gold_path, "agg_assortment_gaps"))
 
-        after_sales_count = int(neg_reviews["is_after_sales_complaint"].sum()) if total_neg > 0 else 0
-        defect_count = int(neg_reviews["is_defect_complaint"].sum()) if total_neg > 0 else 0
+    # BQ6: voice of customer among negative reviews
+    neg = gold("fact_reviews").filter("sentiment_label = 'negative'")
+    n_neg = neg.count()
+    voc_row = neg.agg(
+        F.sum(F.col("is_after_sales_complaint").cast("int")).alias("after_sales"),
+        F.sum(F.col("is_defect_complaint").cast("int")).alias("defect"),
+    ).first()
+    after_sales, defect = int(voc_row["after_sales"] or 0), int(voc_row["defect"] or 0)
+    # built from pandas (Arrow path, no Python worker needed)
+    voc = spark.createDataFrame(pd.DataFrame({
+        "complaint_category": ["Quy trình Hậu mãi (Đổi trả / Hoàn tiền / CSKH)",
+                               "Lỗi Kỹ thuật / Hỏng hóc Sản phẩm"],
+        "complaint_count": [after_sales, defect],
+        "negative_reviews": [n_neg, n_neg],
+    })).withColumn(
+        "percentage_of_negative",
+        F.round(F.when(F.col("negative_reviews") > 0,
+                       F.col("complaint_count") / F.col("negative_reviews") * 100).otherwise(0.0), 2),
+    )
+    overwrite(spark, voc, table_path(gold_path, "agg_voc_complaint_causes"))
+    snap.unpersist()
 
-        voc_summary = pd.DataFrame([
-            {
-                "complaint_category": "Quy trình Hậu mãi (Đổi trả / Hoàn tiền / CSKH)",
-                "complaint_count": after_sales_count,
-                "percentage_of_negative": round((after_sales_count / total_neg) * 100, 2) if total_neg > 0 else 0.0,
-            },
-            {
-                "complaint_category": "Lỗi Kỹ thuật / Hỏng hóc Sản phẩm",
-                "complaint_count": defect_count,
-                "percentage_of_negative": round((defect_count / total_neg) * 100, 2) if total_neg > 0 else 0.0,
-            }
-        ])
-        voc_summary.to_parquet(gold_dir / "agg_voc_complaint_causes.parquet", index=False)
-        logger.info("✅ Saved agg_voc_complaint_causes: After-sales=%d, Defect=%d",
-                    after_sales_count, defect_count)
+    stats = {
+        "skus": total_skus, "brands": n_brands, "cr5_pct": round(float(cr5), 2),
+        "negative_reviews": n_neg, "after_sales_complaints": after_sales, "defect_complaints": defect,
+    }
+    logger.info("[GOLD] aggregates: %s", stats)
+    return stats
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Generate Gold Aggregations")
-    parser.add_argument("--gold-dir", default=str(GOLD_DIR))
-    args = parser.parse_args()
+    from spark.spark_session import get_spark_session
 
-    compute_business_aggregates(Path(args.gold_dir))
+    argparse.ArgumentParser(description="Build Gold aggregates").parse_args()
+    spark = get_spark_session("gold_aggregations")
+    try:
+        compute_business_aggregates(spark)
+    finally:
+        spark.stop()
 
 
 if __name__ == "__main__":
     main()
-

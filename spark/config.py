@@ -1,6 +1,9 @@
 """
 Lakehouse Storage & Pipeline Configuration for Apache Spark.
-Supports local filesystem and MinIO S3A storage.
+
+Every Medallion table is stored as a Delta Lake table (a directory with a
+_delta_log). The serving layer holds plain Parquet snapshots exported from
+Gold, consumed by the DWH loader and Power BI.
 """
 import os
 from pathlib import Path
@@ -13,8 +16,10 @@ LAKEHOUSE_DIR = DATA_DIR / "lakehouse"
 BRONZE_DIR = LAKEHOUSE_DIR / "bronze"
 SILVER_DIR = LAKEHOUSE_DIR / "silver"
 GOLD_DIR = LAKEHOUSE_DIR / "gold"
+SERVING_DIR = LAKEHOUSE_DIR / "serving"
+CHECKPOINT_DIR = LAKEHOUSE_DIR / "_checkpoints"
 
-for d in [BRONZE_DIR, SILVER_DIR, GOLD_DIR]:
+for d in [BRONZE_DIR, SILVER_DIR, GOLD_DIR, SERVING_DIR, CHECKPOINT_DIR]:
     d.mkdir(parents=True, exist_ok=True)
 
 # MinIO / Cloud S3A URIs (if running with MinIO)
@@ -26,7 +31,17 @@ if USE_MINIO:
     SILVER_PATH = f"s3a://{MINIO_BUCKET}/silver"
     GOLD_PATH = f"s3a://{MINIO_BUCKET}/gold"
 else:
-    BRONZE_PATH = str(BRONZE_DIR)
-    SILVER_PATH = str(SILVER_DIR)
-    GOLD_PATH = str(GOLD_DIR)
+    BRONZE_PATH = BRONZE_DIR.as_posix()
+    SILVER_PATH = SILVER_DIR.as_posix()
+    GOLD_PATH = GOLD_DIR.as_posix()
 
+
+def table_path(layer_path: str, table: str) -> str:
+    """Return the storage path of a Delta table inside a Medallion layer."""
+    return f"{layer_path}/{table}"
+
+
+# Kafka streaming source
+KAFKA_BOOTSTRAP = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
+PRICE_EVENTS_TOPIC = os.getenv("PRICE_EVENTS_TOPIC", "raw-price-events")
+SPARK_KAFKA_PACKAGE = "org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0"

@@ -15,16 +15,18 @@ Flow:
    [ DATA QUALITY GATE ]   <-- Fail-Fast: halts pipeline if critical rules fail
               │
               ▼
-  ┌───────────────────────┐
-  │ Parallel Gold Tables  │
-  │ - Gold Dimensions     │
-  │ - Gold Facts          │
-  └───────────┬───────────┘
+  Gold Dimensions (SCD2 MERGE)
+              │
+              ▼
+  Gold Facts (point-in-time join to dim_product versions)
+              │
               ▼
   Gold Business Aggregations (BQ1 to BQ6)
               │
               ▼
-  Streaming Price Alerts & Notification
+  Price-alert Structured Stream (availableNow) -> Serving export (Parquet for DWH/BI)
+
+Every task is a PySpark job writing Delta Lake tables (MERGE-based, idempotent re-runs).
 """
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -43,15 +45,19 @@ default_args = {
 
 
 def execute_quality_gate(**context):
-    """Execute automated data quality checks before promoting to Gold."""
-    from dags.data_quality import run_silver_quality_gate
-    base_dir = Path("/opt/airflow") if Path("/opt/airflow").exists() else Path(__file__).resolve().parent.parent
-    silver_prod = base_dir / "data" / "lakehouse" / "silver" / "products" / "clean_products.parquet"
-    silver_rev = base_dir / "data" / "lakehouse" / "silver" / "reviews" / "clean_reviews.parquet"
-    report_file = base_dir / "data" / "lakehouse" / "silver" / "data_quality_report.json"
+    """Run the 12 quality checks on the Silver Delta tables; raises to stop the DAG."""
+    from dags.data_quality import run_silver_quality_gate_delta
+    from spark.config import LAKEHOUSE_DIR, SILVER_PATH
+    from spark.spark_session import get_spark_session
 
-    summary = run_silver_quality_gate(silver_prod, silver_rev, report_file)
-    print(f"✅ Data Quality Gate PASSED: {summary['passed']}/{summary['total_checks']} assertions satisfied.")
+    spark = get_spark_session("airflow_quality_gate")
+    try:
+        summary = run_silver_quality_gate_delta(
+            spark, SILVER_PATH, LAKEHOUSE_DIR / "silver_quality_report.json"
+        )
+    finally:
+        spark.stop()
+    print(f"Data Quality Gate PASSED: {summary['passed']}/{summary['total_checks']} checks.")
 
 
 with DAG(
@@ -108,12 +114,18 @@ with DAG(
     # Step 6: Streaming Price Alerts Detection
     price_alerts = BashOperator(
         task_id="streaming_price_alerts_detection",
-        bash_command="python -m spark.streaming.price_alert_stream",
+        bash_command="python -m spark.streaming.price_alert_stream --source files --trigger available-now",
+    )
+
+    # Step 7: Export Gold Delta tables to Parquet for the DWH loader / Power BI
+    serving_export = BashOperator(
+        task_id="serving_layer_export",
+        bash_command="python -m spark.jobs.export_serving",
     )
 
     # Define DAG workflow dependencies
     bronze_ingest >> [silver_products, silver_reviews]
     [silver_products, silver_reviews] >> quality_gate
-    quality_gate >> [gold_dimensions, gold_facts]
-    [gold_dimensions, gold_facts] >> gold_aggregations >> price_alerts
+    quality_gate >> gold_dimensions >> gold_facts >> gold_aggregations
+    gold_aggregations >> price_alerts >> serving_export
 

@@ -99,7 +99,7 @@ def stream_events(
 ) -> Generator[dict, None, None]:
     """Yield simulated price events at a designated frequency."""
     count = 0
-    delay = 1.0 / rate_per_sec if rate_per_sec > 0 else 0.5
+    delay = 1.0 / rate_per_sec if rate_per_sec > 0 else 0.0  # rate 0 = instant dump
 
     while True:
         prod = random.choice(products)
@@ -114,7 +114,11 @@ def stream_events(
 def main():
     parser = argparse.ArgumentParser(description="Simulate Real-time Price Events")
     parser.add_argument("--input", type=str, default=str(RAW_DATA_DIR / "products_raw.jsonl"), help="Products input file")
-    parser.add_argument("--output", type=str, default=str(RAW_DATA_DIR / "simulated_price_events.jsonl"), help="Output file")
+    parser.add_argument(
+        "--output", type=str,
+        default=str(RAW_DATA_DIR / "price_events" / f"events_{datetime.now(timezone.utc):%Y%m%dT%H%M%S}.jsonl"),
+        help="Output file (default: a new file in data/raw/price_events/, read by the file-source stream)",
+    )
     parser.add_argument("--count", type=int, default=100, help="Total number of events to generate")
     parser.add_argument("--rate", type=float, default=10.0, help="Events per second (0 for instant dump)")
     args = parser.parse_args()
@@ -128,7 +132,10 @@ def main():
     logger.info("Generating %d simulated price events...", args.count)
     flash_sales_count = 0
 
-    with open(output_path, "w", encoding="utf-8") as out_f:
+    # Write to a hidden temp file first, then rename: the Spark file-source stream
+    # only sees complete files (it ignores names starting with '.').
+    tmp_path = output_path.with_name("." + output_path.name + ".tmp")
+    with open(tmp_path, "w", encoding="utf-8") as out_f:
         for idx, event in enumerate(stream_events(products, rate_per_sec=args.rate, max_events=args.count), 1):
             out_f.write(json.dumps(event, ensure_ascii=False) + "\n")
             if event["is_flash_sale"]:
@@ -137,6 +144,7 @@ def main():
                 logger.info("Generated %d/%d events (Flash Sales detected: %d)",
                             idx, args.count, flash_sales_count)
 
+    tmp_path.replace(output_path)
     logger.info("✅ Done! Saved %d events (including %d flash sales) to %s",
                 args.count, flash_sales_count, output_path)
 

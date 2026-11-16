@@ -1,251 +1,147 @@
-# 🛒 Real-time E-Commerce Market & Price Monitoring Platform
+# 🛒 Tiki Market & Price Monitoring Platform
 
-> An enterprise-grade, end-to-end Data Engineering & Analytics Platform for monitoring real-time pricing fluctuations, seller competition, category assortment gaps, and Vietnamese customer sentiment on Tiki.vn. Built with Apache Kafka, Apache Spark, Delta Lake, Apache Airflow, PostgreSQL, and Power BI.
+> End-to-end data engineering project on real Tiki.vn data: a recursive crawler, a **PySpark + Delta Lake** Medallion lakehouse with a data-quality circuit breaker and an **SCD Type 2** dimension, a **Spark Structured Streaming** price-alert job, a PostgreSQL/SQLite serving layer and a Power BI report.
 
 [![CI Pipeline](https://github.com/TrungPham233/tiki-market-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/TrungPham233/tiki-market-platform/actions)
-[![Python 3.12](https://img.shields.io/badge/Python-3.12-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/)
-[![Apache Kafka](https://img.shields.io/badge/Apache%20Kafka-KRaft-231F20.svg?logo=apachekafka&logoColor=white)](https://kafka.apache.org/)
+[![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![Apache Spark](https://img.shields.io/badge/Apache%20Spark-3.5-E25A1C.svg?logo=apachespark&logoColor=white)](https://spark.apache.org/)
-[![Delta Lake](https://img.shields.io/badge/Delta%20Lake-ACID-00ADD8.svg)](https://delta.io/)
+[![Delta Lake](https://img.shields.io/badge/Delta%20Lake-3.2-00ADD8.svg)](https://delta.io/)
+[![Apache Kafka](https://img.shields.io/badge/Apache%20Kafka-KRaft-231F20.svg?logo=apachekafka&logoColor=white)](https://kafka.apache.org/)
 [![Apache Airflow](https://img.shields.io/badge/Apache%20Airflow-2.8-017CEE.svg?logo=apacheairflow&logoColor=white)](https://airflow.apache.org/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-4169E1.svg?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-[![Power BI](https://img.shields.io/badge/Power%20BI-Dashboard-F2C811.svg?logo=powerbi&logoColor=black)](https://powerbi.microsoft.com/)
+[![Power BI](https://img.shields.io/badge/Power%20BI-PBIP-F2C811.svg?logo=powerbi&logoColor=black)](https://powerbi.microsoft.com/)
 
 ---
 
-## 🏛️ System Architecture
+## 📏 Latest run (measured, not estimated)
+
+| Metric | Value | Where it comes from |
+|:---|---:|:---|
+| Products crawled (Kitchen appliances, category 1882) | **2,000** | `data_collection/crawl_*.py` → `data/raw/` |
+| Reviews crawled | **7,772** | up to 20 per product, 885 products with reviews |
+| Brands / sellers / subcategories | **281 / 206 / 53** | Gold dimensions |
+| Data quality gate | **12 / 12 passed** | `data/lakehouse/silver_quality_report.json` |
+| Full pipeline runtime (local, `local[*]`) | **93 s** | `data/lakehouse/pipeline_run_summary.json` |
+| Re-run on unchanged data | **0** new Bronze rows, **0** SCD2 changes | MERGE-based, idempotent |
+| Price-alert stream latency (event → alert written) | **p50 2.3 s / p95 8.8 s** (78/78 alerts) | `python -m spark.streaming.measure_latency` (file source, 2 s micro-batches) |
+| Automated tests | **36 passed** | `pytest tests/` (unit + PySpark/Delta integration) |
+
+---
+
+## 🏛️ Architecture
 
 ```
-                  ┌──────────────────────────────────────────────┐
-                  │          TIKI.VN INTERNAL APIS               │
-                  │  (Listings, Product Detail, Reviews API)     │
-                  └──────────────────────┬───────────────────────┘
-                                         │
-                    ┌────────────────────┴───────────────────┐
-                    ▼                                        ▼
-      [Recursive Price Splitting Crawler]       [Real-time Price Simulator]
-                    │                                        │
-                    └────────────────────┬───────────────────┘
-                                         ▼
-                    ┌────────────────────────────────────────┐
-                    │       APACHE KAFKA (KRaft Broker)      │
-                    │  Topics: raw-products, raw-reviews,    │
-                    │          raw-price-events              │
-                    └────────────────────┬───────────────────┘
-                                         │
-           ┌─────────────────────────────┴────────────────────────────┐
-           ▼                                                          ▼
-  [Spark Structured Streaming]                                [Airflow Batch DAGs]
-  - Real-time Price Drop Alerts                               - Bronze: Raw Ingestion
-  - Flash Sale Detection (>30%)                               - Silver: Cleaning & NLP
-           │                                                  - Quality Gate (Circuit Breaker)
-           │                                                  - Gold: Star Schema & Aggs
-           │                                                          │
-           └─────────────────────────────┬────────────────────────────┘
-                                         ▼
-                    ┌────────────────────────────────────────┐
-                    │    MEDALLION LAKEHOUSE (Delta Lake)    │
-                    │  🥉 Bronze: Partitioned Raw JSONL       │
-                    │  🥈 Silver: Cleaned, Enriched, NLP     │
-                    │  🥇 Gold: Star Schema (SCD Type 2)     │
-                    └────────────────────┬───────────────────┘
-                                         │
-                                         ▼
-                    ┌────────────────────────────────────────┐
-                    │    POSTGRESQL DATA WAREHOUSE (DWH)     │
-                    │  Schema: dwh (Dimensions & Facts)      │
-                    │  Schema: analytics (BI Serving Views)  │
-                    └────────────────────┬───────────────────┘
-                                         │
-                    ┌────────────────────┴───────────────────┐
-                    ▼                                        ▼
-          [Power BI Dashboard]                      [Real-time Alerts]
-          (7 Executive Analytical Pages)            (Telegram / Webhook)
+ Tiki public APIs (listings / product / reviews)
+        │  recursive price-bisection crawler (data_collection/)
+        ▼
+ data/raw/*.jsonl ───────────────► BRONZE  (Delta, partitioned by ingest_date)
+                                     raw_json + _record_hash + audit columns
+                                     insert-only MERGE on _record_hash  → idempotent
+                                        │  explicit schemas, native Spark SQL transforms
+                                        ▼
+                                   SILVER  (Delta)
+                                     products: brand normalization, discount recompute,
+                                               anomaly flags, latest crawl per product (MERGE)
+                                     reviews : HTML cleanup, sentiment, complaint tags,
+                                               Vietnamese tokenization (underthesea)
+                                        │
+                                        ▼
+                             ┌── DATA QUALITY GATE (12 checks) ──┐  fail → DataQualityError,
+                             └───────────────┬───────────────────┘  Gold is not touched
+                                             ▼
+                                   GOLD  (Delta, Kimball star schema)
+                                     dim_product  : SCD Type 2 via one atomic MERGE
+                                     dim_brand / dim_seller / dim_subcategory / dim_date
+                                     fact_product_snapshot : product x day (daily price history)
+                                     fact_reviews : point-in-time join to dim_product versions
+                                     agg_* : business aggregates (BQ1–BQ6)
+                                             │
+ price events ─► Kafka topic / file dir ─► Spark Structured Streaming ─► gold/price_alerts
+ (simulated from real products)             foreachBatch MERGE + checkpoint, latency_sec per alert
+                                             │
+                                             ▼
+                                   SERVING  (Parquet export) ─► PostgreSQL / SQLite DWH ─► Power BI (PBIP)
 ```
 
----
-
-## 💡 Key Engineering Highlights
-
-1. **Recursive Price-Splitting Algorithm:** Solves Tiki's hard limit of ~2,000 products/query by dynamically bisecting price intervals until each subset is safely under the limit, guaranteeing 100% catalog coverage.
-2. **Schema Validation & Resilient Ingestion:** Kafka producers validate every message against rigorous JSON Schemas with fail-fast validation and at-least-once delivery (`acks="all"`).
-3. **Medallion Lakehouse Architecture:**
-   - **Bronze:** Raw data audit trails partitioned by `ingest_date`.
-   - **Silver:** Brand normalization, discount rate recalculation, and Vietnamese NLP sentiment analysis (`underthesea`).
-   - **Gold:** Kimball Star Schema with **SCD Type 2** for product history tracking.
-4. **Automated Data Quality Circuit Breaker:** 12 automated integrity assertions. Halts the Airflow pipeline before Gold promotion if duplicate keys, invalid ratings, or excessive anomalies are detected.
-5. **Streaming Flash Sale Detection:** Windowed price comparison stream processor flagging instant price cuts $\ge 30\%$.
-6. **Code-First Power BI (PBIP / PBIR / TMDL):** Replaced opaque binary `.pbix` files with a modern, Git-versioned Power BI Project (`.pbip`). The semantic model is defined in TMDL and report visuals are managed in JSON PBIR format, enabling automated generation, code reviews, and reproducible visual layouts.
+Orchestration: `dags/dag_medallion_etl.py` (Airflow) or `spark/run_medallion_pipeline.py` (same tasks, one local SparkSession).
 
 ---
 
-## 📊 Business Intelligence & Key Insights
+## 💡 Engineering highlights
 
-| Business Question | Finding | Strategic Action |
+1. **Recursive price-bisection crawler** – Tiki's listing API stops paginating at ~2,000 items per query. The crawler counts items per price range and splits the range in half until each range is under the limit, so a whole category can be collected (`crawl_product_ids.py`).
+2. **Idempotent loads everywhere** – Bronze uses an insert-only MERGE on a SHA-256 of the raw payload; Silver upserts only when a newer crawl arrives; facts MERGE on their grain; the stream sink MERGEs on `alert_id`. Re-running any task does not duplicate data.
+3. **SCD Type 2 with Delta MERGE** (`silver_to_gold_dimensions.py`) – a hash of the tracked attributes (name, list price, brand, seller, subcategory) is compared with the current row; changed products get their current version expired and a new version inserted in the same MERGE ("staged updates" pattern). Selling price, which changes daily, is kept in `fact_product_snapshot` instead of exploding the dimension.
+4. **Point-in-time joins** – facts link to the `dim_product` version that was valid at snapshot / review time.
+5. **Data quality circuit breaker** – 12 checks (not-empty, not-null, unique keys, value ranges, anomaly rate) on the Silver Delta tables; any critical failure raises and stops the DAG before Gold.
+6. **Structured Streaming with measured latency** – Kafka or file source, `foreachBatch` MERGE into Delta with a checkpoint (restart-safe), and every alert stores `latency_sec`.
+7. **No Python UDFs** – all transforms are native Spark SQL expressions; only underthesea tokenization runs on the driver over distinct review texts.
+
+---
+
+## 📊 Findings from the latest crawl
+
+Numbers below come from the Gold aggregates of the run above. They describe **2,000 products (priced up to 1.3M VND, see limitations) listed in one Tiki category on one day**; "revenue" is `price × quantity_sold` as displayed by Tiki, so treat them as indicative.
+
+| Question | Result (latest crawl) | Read it as |
 |:---|:---|:---|
-| **BQ1: Discount Saturation** | Promotions reach peak effectiveness at **30%–50%**. Disounts $>50\%$ exhibit diminishing returns and lower ratings. | Cap baseline promotional discounts at 50%; reallocate budget to gift bundles and free shipping. |
-| **BQ2: Market Share & CR5** | Market concentration is massive: **CR5 = 98.55%** of revenue, led by Elmich, Philips, Lock&Lock, and Tiki Trading. | Leverage brand dominance to negotiate exclusive SKU product launches. |
-| **BQ3: Quality Risks** | Flagged SKUs with high review volume but low rating ($< 4.5\bigstar$) represent major reputational hazards. | Implement immediate vendor quality audit and pause paid ad spend for flagged items. |
-| **BQ4: Assortment Gaps** | Mainstream segment (500k – 1.5M VND) lacks product variety in specialty kitchen appliances. | Priority onboarding campaign for mid-tier appliance manufacturers. |
-| **BQ6: Voice of Customer** | **50% of 1-2 star complaints stem from after-sales service** (returns, refund delays, CSKH), exceeding actual hardware breakdown rates. | Re-engineer return/refund logistics SLA from 7 days down to 48 hours. |
+| **BQ2 Brand concentration** | Top 5 brands = **74.1%** of estimated revenue across **281** brands (Lock&Lock 27.8%, Sunhouse 20.9%, Philips 16.5%, Damas 5.9%, Kemei 3.1%) | A few brands dominate; the long tail is very long |
+| **1P vs 3P** | **Tiki Trading** = **69.7%** of estimated revenue (206 sellers in total) | First-party selling dominates the category |
+| **BQ1 Discount vs sales** | Median units sold: **2** at 0–10% discount (1,600 SKUs) vs **17** at 30–50% (222 SKUs) and **17** above 50% (60 SKUs). Average rating does not drop with deeper discounts (4.43 → 4.79) | Deep discounts go together with higher sales; no saturation above 50% is visible in this data (correlation, not causation) |
+| **BQ3 Quality watchlist** | **67** SKUs with ≥ 5 reviews and rating < 4.5 | Candidates for a vendor quality check |
+| **BQ4 Assortment gaps** | **59 of 159** subcategory × price-segment cells have no product | Where the category has no offer at a price point |
+| **BQ6 Negative reviews** | Of **693** 1–2★ reviews, keyword rules tag **10.5%** as after-sales (returns/refunds/CS) and **13.9%** as product defects | Most negative reviews match neither keyword list, so the rules need a better classifier before drawing conclusions |
 
 ---
 
-## ⚡ Quick Start
-
-### 1. Prerequisites
-- Docker & Docker Desktop (optional for local run)
-- Python 3.12+
-- Git
-
-### 2. Setup Environment
-```bash
-# Clone repository
-git clone https://github.com/TrungPham233/tiki-market-platform.git
-cd tiki-market-platform
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Copy environment configuration
-copy .env.example .env
-```
-
-### 3. Run Pipeline via Windows Task Runner
-```cmd
-# Run entire test suite (31 tests)
-run.bat test
-
-# Run Medallion Pipeline (Bronze -> Silver -> Gold)
-run.bat medallion
-
-# Sync Gold Lakehouse into Data Warehouse
-run.bat dwh
-
-# Regenerate Power BI Project (PBIP) definition & visuals
-run.bat dashboard
-
-# Run full end-to-end flow
-run.bat all
-```
-
-### 4. Docker Infrastructure (Optional Full Stack)
-```bash
-# Start Kafka, MinIO, Spark Master/Worker, PostgreSQL, Airflow
-docker compose up -d
-
-# Access Web UIs:
-# - Kafka UI: http://localhost:8080
-# - Spark Master: http://localhost:8081
-# - Airflow: http://localhost:8085 (admin/admin)
-# - MinIO Console: http://localhost:9001 (admin/admin12345)
-# - PostgreSQL: localhost:5432 (db: tiki_dwh)
-```
-
----
-
-## 🧪 Comprehensive Unit Testing (31/31 PASSED)
+## ⚡ Quick start
 
 ```bash
-$ python -m pytest tests/ -v
-============================= test session starts =============================
-tests/test_airflow_and_quality.py::test_check_not_empty PASSED           [  3%]
-tests/test_airflow_and_quality.py::test_check_not_null PASSED            [  6%]
-tests/test_airflow_and_quality.py::test_check_unique PASSED              [  9%]
-tests/test_airflow_and_quality.py::test_check_numeric_range PASSED       [ 12%]
-tests/test_airflow_and_quality.py::test_check_anomaly_threshold PASSED   [ 16%]
-tests/test_silver_quality_gate_passes_clean_data PASSED                  [ 19%]
-tests/test_silver_quality_gate_fails_corrupted_data PASSED               [ 22%]
-tests/test_dashboard_pbip.py::test_pbip_files_exist PASSED               [ 25%]
-tests/test_dashboard_pbip.py::test_pages_metadata_integrity PASSED       [ 29%]
-tests/test_dashboard_pbip.py::test_all_pages_and_visuals PASSED          [ 32%]
-tests/test_dashboard_pbip.py::test_semantic_model_tmdl PASSED            [ 35%]
-tests/test_dashboard_pbip.py::test_relationships_star_schema PASSED      [ 38%]
-tests/test_dashboard_pbip.py::test_visual_data_roles_and_theme PASSED    [ 41%]
-tests/test_data_collection.py::test_hash_identifier PASSED               [ 45%]
-tests/test_data_collection.py::test_parse_product_record PASSED          [ 48%]
-tests/test_data_collection.py::test_parse_deleted_product PASSED         [ 51%]
-tests/test_data_collection.py::test_parse_review_record PASSED           [ 54%]
-tests/test_data_collection.py::test_generate_price_event PASSED          [ 58%]
-tests/test_kafka.py::test_product_schema_validation_valid PASSED         [ 61%]
-tests/test_kafka.py::test_product_schema_validation_missing_required PASSED [ 64%]
-tests/test_kafka.py::test_product_schema_validation_negative_price PASSED [ 67%]
-tests/test_kafka.py::test_price_event_schema_validation PASSED           [ 70%]
-tests/test_kafka.py::test_review_schema_validation PASSED                [ 74%]
-tests/test_kafka.py::test_producer_dry_run_send PASSED                   [ 77%]
-tests/test_medallion_spark.py::test_normalize_brand PASSED               [ 80%]
-tests/test_medallion_spark.py::test_clean_html_reviews PASSED            [ 83%]
-tests/test_medallion_spark.py::test_sentiment_labeling PASSED            [ 87%]
-tests/test_medallion_spark.py::test_voc_complaint_categorization PASSED  [ 90%]
-tests/test_medallion_spark.py::test_evaluate_price_alert_flash_sale PASSED [ 93%]
-tests/test_medallion_spark.py::test_evaluate_price_alert_normal_no_trigger PASSED [ 96%]
-tests/test_serving_layer.py::test_sqlite_dwh_sync_and_views PASSED       [100%]
-============================= 31 passed in 2.01s ==============================
+pip install -r requirements.txt          # needs Java 17 for PySpark
+run.bat crawl                            # crawl products + reviews, simulate price events
+run.bat medallion                        # Bronze → Silver → Quality Gate → Gold → Stream → Serving
+run.bat dwh                              # load serving layer into PostgreSQL (SQLite fallback)
+run.bat dashboard                        # refresh Power BI sources
+run.bat test                             # unit + Spark/Delta integration tests
+python -m spark.streaming.measure_latency   # reproduce the streaming latency benchmark
+```
+
+Streaming from Kafka instead of files:
+
+```bash
+docker compose up -d kafka
+python -m kafka_pipeline.producers.price_event_producer --count 200 --rate 5
+python -m spark.streaming.price_alert_stream --source kafka --trigger continuous --interval 2
 ```
 
 ---
 
-## 💼 CV / Resume Highlights & Ready-to-Use Bullets (Dành Cho Hồ Sơ Ứng Tuyển)
+## 🧪 Tests
 
-> 💡 **Hướng dẫn sử dụng:** Các bullet points dưới đây đã được tối ưu hóa theo tiêu chuẩn tuyển dụng quốc tế (**Google XYZ Formula**: *Accomplished [X] as measured by [Y], by doing [Z]*), lượng hóa kết quả và gắn liền với các công nghệ hot nhất trong ngành Dữ liệu. Bạn có thể copy trực tiếp vào CV, LinkedIn hoặc Portfolio.
+`tests/test_spark_delta.py` runs the real PySpark/Delta code on a local SparkSession:
 
-### 📌 Lựa chọn 1: Định hướng **Data Engineer** (Lakehouse & Streaming Focus)
+| Test | What it proves |
+|:---|:---|
+| `test_bronze_ingestion_is_idempotent` | ingesting the same file twice adds 0 rows |
+| `test_silver_products_keeps_latest_and_normalizes` | newest crawl wins, brand aliases, discount recompute, anomaly flag; Spark rule = Python reference |
+| `test_scd2_creates_new_version_only_on_change` | changed list price → v1 expired, v2 current, `valid_to(v1) = valid_from(v2)`; re-run is a no-op |
+| `test_structured_streaming_price_alerts` | correct alerts from a file stream; restart from checkpoint reprocesses nothing |
+| `test_quality_gate_reads_delta_and_blocks_bad_data` | duplicate keys in Silver Delta stop the pipeline |
 
-**Real-time E-Commerce Market & Price Monitoring Platform** | *Python, Apache Kafka, Apache Spark, Delta Lake, Apache Airflow, PostgreSQL, Docker, CI/CD*
-- **Architected an enterprise-grade Medallion Lakehouse (Bronze-Silver-Gold)** using **PySpark** and **Delta Lake**, delivering ACID transactional reliability and **SCD Type 2** historical price tracking.
-- **Engineered a real-time event-driven streaming pipeline** using **Apache Kafka (KRaft mode)** and **Spark Structured Streaming**, enabling sub-minute detection of steep price drops ($\ge 30\%$) and flash sale anomalies.
-- **Formulated a recursive price-bisection crawler algorithm** overcoming Tiki's strict ~2,000-product API limit, achieving **100% full-catalog coverage** with zero missing price bands.
-- **Implemented an automated Data Quality Circuit Breaker** with 12 validation rules integrated into **Apache Airflow DAGs**, completely eliminating silent data corruptions prior to Gold Data Warehouse loading.
-- **Established an automated CI/CD pipeline** with **GitHub Actions** and **Pytest (31 unit tests)** covering schema validation, streaming alert logic, and data warehouse synchronization, maintaining a 100% passing build status.
-
----
-
-### 📌 Lựa chọn 2: Định hướng **Analytics Engineer / BI Developer** (DWH & BI Focus)
-
-**Real-time E-Commerce Market & Price Monitoring Platform** | *PostgreSQL, Power BI (PBIP/TMDL/PBIR), DAX, Python, Delta Lake, Airflow*
-- **Modeled a high-performance Kimball Star Schema Data Warehouse** in **PostgreSQL** with 2 fact tables (`fact_product_snapshot`, `fact_reviews`) and 5 dimension tables, supporting sub-second analytical reporting.
-- **Pioneered a Code-First Power BI Architecture (PBIP)** utilizing **TMDL** (Tabular Model Definition Language) and **PBIR** (JSON-based visuals), enabling complete Git version control, automated generation, and peer code reviews.
-- **Engineered complex DAX analytics measures** (dynamic percentiles, market concentration index **CR5 = 98.55%**, and promotional discount saturation) paired with a branded Tiki design theme (`#1A94FF`).
-- **Extracted Voice-of-Customer (VoC) sentiment insights** using Vietnamese NLP (**`underthesea`**), discovering that **50% of 1-star complaints stemmed from after-sales return logistics** rather than hardware defects, driving strategic recommendations to compress return SLA from 7 days to 48 hours.
-- **Designed and delivered 7 strategic executive dashboard pages** tracking Market Overview, Brand Dominance, Price Saturation, Quality Watchlist, and Assortment Gaps.
+The other test files cover crawler parsing, Kafka JSON-schema validation, quality checks, the DWH loader/views and the Power BI project files. CI (GitHub Actions) runs everything with Java 17 + Python 3.11.
 
 ---
 
-### 📌 Lựa chọn 3: Phiên bản tiếng Việt (Dành cho CV / Portfolio trong nước)
+## ⚠️ Known limitations
 
-**Nền tảng Giám sát & Phân tích Thị trường Thương mại Điện tử Thời gian thực (Tiki Platform)**
-- **Kiến trúc dữ liệu hiện đại:** Thiết kế kiến trúc **Medallion Lakehouse (Bronze - Silver - Gold)** hoàn chỉnh kết hợp giữa **Apache Spark, Delta Lake (ACID)** và **PostgreSQL Data Warehouse (Kimball Star Schema)**.
-- **Thu thập dữ liệu thông minh:** Phát triển thuật toán **Recursive Price Splitting** tự động chia nhỏ khoảng giá khi số lượng SKU vượt ngưỡng, vượt qua giới hạn 2.000 sản phẩm của Tiki API và thu thập toàn diện 100% danh mục.
-- **Xử lý Streaming thời gian thực:** Triển khai **Apache Kafka (KRaft mode)** và **Spark Structured Streaming** để bắt sự kiện thay đổi giá tức thời, tự động kích hoạt cảnh báo khi phát hiện Flash Sale giảm sâu $\ge 30\%$.
-- **Kiểm định chất lượng tự động (Data Quality Gate):** Xây dựng cơ chế **Circuit Breaker** với 12 quy tắc kiểm tra tính toàn vẹn (primary keys, rating range, tỷ lệ bất thường) tích hợp trong **Airflow DAG**, tự động chặn pipeline nếu phát hiện lỗi dữ liệu.
-- **Khai phá dữ liệu & Xử lý ngôn ngữ tự nhiên (NLP):** Ứng dụng **`underthesea`** để phân tích cảm xúc đánh giá của khách hàng, chỉ ra **50% nguyên nhân 1 sao đến từ quy trình đổi trả/hậu mãi**, cung cấp cơ sở dữ liệu để ban điều hành cắt giảm thời gian xử lý khiếu nại từ 7 ngày xuống 48 giờ.
-- **Báo cáo phân tích chuyên sâu (Code-First Power BI):** Xây dựng 7 trang dashboard quản trị bằng định dạng **PBIP (TMDL & PBIR)** lưu trữ trực tiếp trên Git, viết công thức DAX nâng cao đo lường mức độ tập trung thị trường (**CR5 = 98.55%**) và mức độ bão hòa khuyến mãi.
-- **DevOps & Tự động hóa kiểm thử:** Tích hợp **GitHub Actions CI/CD** tự động định dạng mã nguồn (Black) và thực thi **31 unit tests (Pytest)** đạt tỷ lệ pass 100%.
-
----
-
-### 📊 Bảng tổng hợp các chỉ số định lượng (Quantitative Impact Metrics)
-
-| Chỉ số / Thành tựu | Giá trị đạt được | Ý nghĩa kỹ thuật / nghiệp vụ |
-|:---|:---:|:---|
-| **Catalog Coverage** | **100%** | Thuật toán Recursive Price Bisection loại bỏ hoàn toàn điểm mù do API pagination limit (~2,000 SKUs). |
-| **Streaming Alert Latency** | **< 60 giây** | Phát hiện ngay lập tức các đợt flash sale giảm giá $\ge 30\%$ và bất thường giá qua Spark Structured Streaming. |
-| **Data Quality Assertions** | **12 / 12 quy tắc** | Cơ chế Circuit Breaker chặn 100% lỗi dữ liệu bẩn rò rỉ vào Data Warehouse và Power BI. |
-| **Market Concentration (CR5)** | **98.55%** | DAX Measure đo lường chính xác tỷ trọng doanh thu của top 5 thương hiệu dẫn đầu ngành hàng gia dụng. |
-| **VoC Logistics Root Cause** | **50%** | NLP sentiment mining chỉ ra khâu đổi trả/hoàn tiền là nguyên nhân chính gây đánh giá 1-2 sao. |
-| **Automated Test Suite** | **31 / 31 PASSED** | Kiểm thử tự động đa tầng (crawlers, Kafka schemas, Spark transforms, DWH sync, PBIP metadata) trên CI GitHub Actions. |
-
----
-
-### 🛠️ Kỹ năng & Từ khóa cốt lõi (Skills for CV)
-- **Data Engineering & Streaming:** Apache Kafka (KRaft), Apache Spark (PySpark, Structured Streaming), Delta Lake (ACID, SCD Type 2, Time Travel), Apache Airflow 2.8.
-- **Data Warehousing & Modeling:** Kimball Star Schema, Dimension & Fact Modeling, PostgreSQL 15, SQLite fallback, Database Indexing & Views.
-- **Business Intelligence & Analytics:** Microsoft Power BI (PBIP, PBIR, TMDL), Advanced DAX, Data Storytelling, KPI Dashboard Design.
-- **NLP & Quality Engineering:** Vietnamese NLP (`underthesea`), Data Quality Circuit Breaker, Great Expectations concepts, Schema Validation (JSON Schema).
-- **Languages & DevOps:** Python 3.12, SQL, Docker, Docker Compose, Git, GitHub Actions (CI/CD), Pytest, Black.
+- **Sample, not the full category:** the last crawl used `--max-products 2000`. Tiki reports at most 2,000 items per query, so the bisection split the category into 10 price intervals, and these are crawled from low to high price; the cap was reached at 1.3M VND. The findings therefore describe the lower-priced part of the category. Remove the cap to collect everything.
+- Runs Spark in `local[*]` mode on one machine; the docker-compose Spark cluster is not used by the jobs yet.
+- Price-change events are **simulated** from real crawled products (Tiki has no public price-change feed). The latency benchmark uses the file source; the Kafka source is implemented but was not part of the benchmark.
+- One crawl so far, so every product is at SCD2 version 1; versions accumulate with daily crawls (logic covered by tests).
+- MinIO/S3A settings exist but the `hadoop-aws` jar is not wired in; storage is the local filesystem.
+- The stock `apache/airflow` image has no Java/PySpark, so DAG tasks need a custom image; `dags/local_dag_runner.py` runs the same tasks locally.
+- Spark 3.5 Python workers do not run on Python 3.12 on Windows; the pipeline avoids Python UDFs, so it works there anyway.
 
 ---
 
 ## 👤 Author
 - **GitHub:** [@TrungPham233](https://github.com/TrungPham233)
-- **Email:** 23521685@gm.uit.edu.vn

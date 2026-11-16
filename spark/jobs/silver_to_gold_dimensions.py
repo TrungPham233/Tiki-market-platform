@@ -1,26 +1,39 @@
 """
-Gold Layer: Dimension Tables Generation with SCD Type 2.
+Gold Layer: Star Schema Dimensions (PySpark + Delta Lake).
 
-Creates Star Schema Dimension Tables:
-1. dim_brand
-2. dim_seller
-3. dim_subcategory
-4. dim_date
-5. dim_product (SCD Type 2: tracks original price & seller changes)
+- dim_brand, dim_seller, dim_subcategory: Type 1 (MERGE upsert on the natural key)
+- dim_date: generated calendar (2025-2027)
+- dim_product: **SCD Type 2** implemented with a Delta MERGE.
+
+SCD2 design for dim_product
+---------------------------
+Tracked attributes: name, original_price (list price), brand, seller, subcategory.
+(The selling price changes almost daily, so it lives in fact_product_snapshot
+instead of exploding the dimension.)
+
+Each run:
+1. Hash the tracked attributes of the latest Silver record (row_hash).
+2. Compare with the current dimension row (is_current = true).
+3. Changed products: expire the current row (is_current=false, valid_to=new valid_from)
+   and insert a new version (version + 1).
+   New products: insert version 1.
+   Unchanged products: no-op (re-running is idempotent).
+Both steps happen in ONE atomic MERGE using the standard "staged updates" pattern
+(rows to expire are keyed by product_id, rows to insert get a NULL merge key).
 """
 import argparse
-import hashlib
 import logging
 import sys
-from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-import pandas as pd
+from delta.tables import DeltaTable
+from pyspark.sql import DataFrame, SparkSession
+from pyspark.sql import functions as F
 
-# Add parent directory to sys.path
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
 
-from spark.config import GOLD_DIR, SILVER_DIR
+from spark.config import GOLD_PATH, SILVER_PATH, table_path
+from spark.delta_utils import last_operation_metrics, overwrite, upsert
 
 logging.basicConfig(
     level=logging.INFO,
@@ -29,94 +42,162 @@ logging.basicConfig(
 )
 logger = logging.getLogger("gold_dimensions")
 
+SCD2_TRACKED_COLUMNS = [
+    "name", "original_price", "brand_id", "seller_id", "subcategory_id",
+]
+PRODUCT_ATTRIBUTES = SCD2_TRACKED_COLUMNS + [
+    "origin", "warranty_type", "power_wattage", "capacity",
+]
+# "Open" end date of the current version. 2099 instead of 9999 keeps the value inside
+# the pandas datetime64[ns] range (max 2262) used by the serving export / Power BI.
+OPEN_END = "2099-12-31 23:59:59"
 
-def build_date_dimension(gold_dir: Path) -> int:
-    """Generate calendar date dimension."""
-    start_date = datetime(2025, 1, 1)
-    end_date = datetime(2027, 12, 31)
 
-    records = []
-    curr = start_date
-    while curr <= end_date:
-        date_key = int(curr.strftime("%Y%m%d"))
-        records.append({
-            "date_key": date_key,
-            "full_date": curr.strftime("%Y-%m-%d"),
-            "day_of_week": curr.weekday() + 1,
-            "day_name": curr.strftime("%A"),
-            "month": curr.month,
-            "month_name": curr.strftime("%B"),
-            "quarter": (curr.month - 1) // 3 + 1,
-            "year": curr.year,
-            "is_weekend": curr.weekday() >= 5,
-        })
-        curr += timedelta(days=1)
+def build_date_dimension(spark: SparkSession) -> DataFrame:
+    return (
+        spark.sql("SELECT explode(sequence(to_date('2025-01-01'), to_date('2027-12-31'))) AS d")
+        .select(
+            F.date_format("d", "yyyyMMdd").cast("int").alias("date_key"),
+            F.col("d").alias("full_date"),
+            F.dayofweek("d").alias("day_of_week"),
+            F.date_format("d", "EEEE").alias("day_name"),
+            F.month("d").alias("month"),
+            F.date_format("d", "MMMM").alias("month_name"),
+            F.quarter("d").alias("quarter"),
+            F.year("d").alias("year"),
+            F.dayofweek("d").isin(1, 7).alias("is_weekend"),
+        )
+    )
 
-    df_date = pd.DataFrame(records)
-    out_file = gold_dir / "dim_date.parquet"
-    df_date.to_parquet(out_file, index=False, engine="pyarrow")
-    logger.info("Saved %d dates to %s", len(df_date), out_file)
-    return len(df_date)
+
+def prepare_product_changes(silver_products: DataFrame) -> DataFrame:
+    """Latest Silver state per product + hash of SCD2-tracked attributes."""
+    return (
+        silver_products
+        .select("product_id", *PRODUCT_ATTRIBUTES, "crawled_at")
+        .withColumn(
+            "row_hash",
+            F.sha2(F.concat_ws("||", *[F.coalesce(F.col(c).cast("string"), F.lit("∅"))
+                                       for c in SCD2_TRACKED_COLUMNS]), 256),
+        )
+        .withColumn("valid_from", F.coalesce("crawled_at", F.current_timestamp()))
+        .drop("crawled_at")
+    )
+
+
+def apply_scd2(spark: SparkSession, incoming: DataFrame, target: str) -> dict:
+    """Apply an SCD Type 2 MERGE of `incoming` into the dim_product Delta table."""
+    def finalize(df: DataFrame) -> DataFrame:
+        return (
+            df.withColumn("product_sk",
+                          F.concat(F.col("product_id").cast("string"), F.lit("_v"),
+                                   F.col("version").cast("string")))
+            .withColumn("valid_to", F.to_timestamp(F.lit(OPEN_END)))
+            .withColumn("is_current", F.lit(True))
+        )
+
+    if not DeltaTable.isDeltaTable(spark, target):
+        first = finalize(incoming.withColumn("version", F.lit(1)))
+        first.write.format("delta").mode("overwrite").save(target)
+        n = first.count()
+        return {"operation": "CREATE", "inserted_versions": n, "expired_versions": 0}
+
+    dim = DeltaTable.forPath(spark, target)
+    current = dim.toDF().filter("is_current").select(
+        "product_id", F.col("row_hash").alias("cur_hash"), F.col("version").alias("cur_version")
+    )
+
+    changed = (
+        incoming.join(current, "product_id")
+        .filter(F.col("row_hash") != F.col("cur_hash"))
+        .withColumn("version", F.col("cur_version") + 1)
+        .drop("cur_hash", "cur_version")
+    )
+    brand_new = incoming.join(current, "product_id", "left_anti").withColumn("version", F.lit(1))
+    changed = changed.cache()
+    brand_new = brand_new.cache()
+    n_changed, n_new = changed.count(), brand_new.count()
+    if n_changed == 0 and n_new == 0:
+        # nothing to do; note Delta does not commit an empty MERGE
+        return {"operation": "NOOP", "inserted_versions": 0, "expired_versions": 0}
+    to_insert = finalize(changed.unionByName(brand_new))
+
+    staged = (
+        changed.select("product_id", "valid_from", "row_hash")
+        .withColumn("merge_key", F.col("product_id"))
+        .unionByName(
+            to_insert.select("product_id", "valid_from", "row_hash")
+            .withColumn("merge_key", F.lit(None).cast("long")),
+        )
+        .join(to_insert.drop("valid_from", "row_hash"), "product_id", "left")
+    )
+    # rows with merge_key = product_id expire the current version;
+    # rows with merge_key = NULL never match and are inserted as new versions.
+    insert_values = {c: f"s.{c}" for c in to_insert.columns}
+    (
+        dim.alias("t")
+        .merge(staged.alias("s"), "t.product_id = s.merge_key AND t.is_current = true")
+        .whenMatchedUpdate(
+            condition="t.row_hash <> s.row_hash",
+            set={"is_current": "false", "valid_to": "s.valid_from"},
+        )
+        .whenNotMatchedInsert(values=insert_values)
+        .execute()
+    )
+    m = last_operation_metrics(spark, target)
+    changed.unpersist()
+    brand_new.unpersist()
+    return {
+        "operation": m["operation"],
+        "inserted_versions": int(m.get("numTargetRowsInserted", 0)),
+        "expired_versions": int(m.get("numTargetRowsUpdated", 0)),
+        "changed_products": n_changed,
+        "new_products": n_new,
+    }
 
 
 def process_dimensions(
-    silver_products_file: Path = SILVER_DIR / "products" / "clean_products.parquet",
-    gold_dir: Path = GOLD_DIR,
-) -> None:
-    """Extract and build dimension tables from Silver clean products."""
-    if not silver_products_file.exists():
-        logger.error("Silver products file %s does not exist!", silver_products_file)
-        return
+    spark: SparkSession,
+    silver_path: str = SILVER_PATH,
+    gold_path: str = GOLD_PATH,
+) -> dict:
+    silver = spark.read.format("delta").load(table_path(silver_path, "products"))
 
-    df = pd.read_parquet(silver_products_file)
-    gold_dir.mkdir(parents=True, exist_ok=True)
+    upsert(spark,
+           silver.select("brand_id", "brand_name")
+           .withColumn("brand_id", F.coalesce("brand_id", F.lit("unknown")))
+           .dropDuplicates(["brand_id"]),
+           table_path(gold_path, "dim_brand"), keys=["brand_id"])
+    upsert(spark,
+           silver.select("seller_id", "seller_name", "is_official_seller")
+           .withColumn("seller_id", F.coalesce("seller_id", F.lit("unknown")))
+           .dropDuplicates(["seller_id"]),
+           table_path(gold_path, "dim_seller"), keys=["seller_id"])
+    upsert(spark,
+           silver.select("subcategory_id", "subcategory_name")
+           .withColumn("subcategory_id", F.coalesce("subcategory_id", F.lit("unknown")))
+           .dropDuplicates(["subcategory_id"]),
+           table_path(gold_path, "dim_subcategory"), keys=["subcategory_id"])
+    overwrite(spark, build_date_dimension(spark), table_path(gold_path, "dim_date"))
 
-    # 1. Dim Brand
-    df_brand = df[["brand_id", "brand_name"]].drop_duplicates().copy()
-    df_brand["brand_id"] = df_brand["brand_id"].fillna("unknown").astype(str)
-    df_brand.to_parquet(gold_dir / "dim_brand.parquet", index=False)
-    logger.info("✅ Created dim_brand with %d brands", len(df_brand))
-
-    # 2. Dim Seller
-    df_seller = df[["seller_id", "seller_name", "is_official_seller"]].drop_duplicates().copy()
-    df_seller["seller_id"] = df_seller["seller_id"].fillna("unknown").astype(str)
-    df_seller.to_parquet(gold_dir / "dim_seller.parquet", index=False)
-    logger.info("✅ Created dim_seller with %d sellers", len(df_seller))
-
-    # 3. Dim Subcategory
-    df_subcat = df[["subcategory_id", "subcategory_name"]].drop_duplicates().copy()
-    df_subcat["subcategory_id"] = df_subcat["subcategory_id"].fillna("unknown").astype(str)
-    df_subcat.to_parquet(gold_dir / "dim_subcategory.parquet", index=False)
-    logger.info("✅ Created dim_subcategory with %d subcategories", len(df_subcat))
-
-    # 4. Dim Product with SCD Type 2 logic
-    # Surrogate key generation using hash
-    now_iso = datetime.now(timezone.utc).isoformat()
-    df_prod = df[[
-        "product_id", "name", "brand_id", "seller_id", "subcategory_id",
-        "original_price", "origin", "warranty_type", "power_wattage", "capacity"
-    ]].drop_duplicates().copy()
-
-    df_prod["product_sk"] = df_prod["product_id"].astype(str) + "_v1"
-    df_prod["valid_from"] = "2026-01-01T00:00:00Z"
-    df_prod["valid_to"] = "9999-12-31T23:59:59Z"
-    df_prod["is_current"] = True
-    df_prod.to_parquet(gold_dir / "dim_product.parquet", index=False)
-    logger.info("✅ Created dim_product (SCD Type 2) with %d products", len(df_prod))
-
-    # 5. Dim Date
-    build_date_dimension(gold_dir)
+    stats = apply_scd2(spark, prepare_product_changes(silver), table_path(gold_path, "dim_product"))
+    dim = spark.read.format("delta").load(table_path(gold_path, "dim_product"))
+    stats["total_rows"] = dim.count()
+    stats["current_rows"] = dim.filter("is_current").count()
+    logger.info("[GOLD] dim_product SCD2: %s", stats)
+    return stats
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Generate Gold Dimension Tables")
-    parser.add_argument("--silver-products", default=str(SILVER_DIR / "products" / "clean_products.parquet"))
-    parser.add_argument("--gold-dir", default=str(GOLD_DIR))
-    args = parser.parse_args()
+    from spark.spark_session import get_spark_session
 
-    process_dimensions(Path(args.silver_products), Path(args.gold_dir))
+    argparse.ArgumentParser(description="Build Gold dimensions (SCD2)").parse_args()
+    spark = get_spark_session("gold_dimensions")
+    try:
+        process_dimensions(spark)
+    finally:
+        spark.stop()
 
 
 if __name__ == "__main__":
     main()
-
